@@ -16,6 +16,9 @@ import repast.simphony.space.grid.SimpleGridAdder;
 import repast.simphony.space.grid.WrapAroundBorders;
 
 public class SheepBuilder implements ContextBuilder<Sheep> {
+	private static final int SIZE = 50;
+
+	private static final int SHEEP_COUNT = 25;
 
 	@Override
 	public Context<Sheep> build(Context<Sheep> context) {
@@ -25,21 +28,20 @@ public class SheepBuilder implements ContextBuilder<Sheep> {
 				.createContinuousSpaceFactory(null);
 		ContinuousSpace<Sheep> space = spaceFactory.createContinuousSpace(
 				"space", context, new RandomCartesianAdder<>(),
-				new repast.simphony.space.continuous.WrapAroundBorders(), 50,
-				50);
+				new repast.simphony.space.continuous.WrapAroundBorders(), SIZE,
+				SIZE);
 
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
 		Grid<Sheep> grid = gridFactory.createGrid("grid", context,
 				new GridBuilderParameters<Sheep>(new WrapAroundBorders(),
-						new SimpleGridAdder<>(), true, 50, 50));
+						new SimpleGridAdder<>(), true, SIZE, SIZE));
 
-		for (int i = 0; i < 25; i++) {
-			context.add(new Sheep(space, grid));
-		}
-
-		for (Sheep sheep : context) {
+		for (int i = 0; i < SHEEP_COUNT; i++) {
+			Sheep sheep = new Sheep(space, grid);
+			context.add(sheep);
 			NdPoint point = space.getLocation(sheep);
 			grid.moveTo(sheep, (int) point.getX(), (int) point.getY());
+
 		}
 
 		return context;

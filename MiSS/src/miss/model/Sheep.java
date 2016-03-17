@@ -1,206 +1,157 @@
 package miss.model;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.Iterator;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
-import repast.simphony.query.space.grid.GridCell;
 import repast.simphony.query.space.grid.MooreQuery;
 import repast.simphony.random.RandomHelper;
-import repast.simphony.space.SpatialMath;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.grid.Grid;
-import repast.simphony.space.grid.GridPoint;
 import repast.simphony.util.SimUtilities;
 
 public class Sheep {
-	private static final double turnSpeed = 0.4;
+	private static final int NEIGHBORHOOD_RADIUS = 3;
 
-	private final double desiredDistance = 0.5;
-
-	private double distance;
-
-	private double heading;
+	private static final double MAX_VELOCITY = 0.5;
 
 	private ContinuousSpace<Sheep> space;
 
 	private Grid<Sheep> grid;
 
-	final double separationWeight = RandomHelper.nextDoubleFromTo(0.0, 1.0);
-	final double cohesionWeight = 1.0 - separationWeight;
+	private NdPoint velocity;
 
 	public Sheep(ContinuousSpace<Sheep> space, Grid<Sheep> grid) {
 		this.space = space;
 		this.grid = grid;
-		distance = 0.2;
-		heading = Math.random() * (2 * Math.PI);
+
+		velocity = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
+				RandomHelper.nextDoubleFromTo(-1, 1));
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void step() {
-		assert (heading <= Math.PI * 2);
+		NdPoint v1 = rule1();
+		NdPoint v2 = rule2();
+		NdPoint v3 = rule3();
+
+		velocity = new NdPoint(velocity.getX() + v1.getX() + v2.getX()
+				+ v3.getX(), velocity.getY() + v1.getY() + v2.getY()
+				+ v3.getY());
+
+		slowDown();
 		forward();
-		// heading = alignmentDirection();
-		heading = averageTwoDirections(cohesionDirection(),
-				separationDirection());
 	}
 
-	public void moveTowards(GridCell<Sheep> targetCell) {
-		GridPoint point = targetCell.getPoint();
-		if (!point.equals(grid.getLocation(this))) {
+	private NdPoint rule1() {
+		ArrayList<Sheep> neighborhood = neighborhood();
+		if (neighborhood.size() > 0) {
+			NdPoint result = new NdPoint(0, 0);
+			for (Sheep sheep : neighborhood) {
+				NdPoint otherPoint = space.getLocation(sheep);
+				result = new NdPoint(result.getX() + otherPoint.getX(),
+						result.getY() + otherPoint.getY());
+			}
+			result = new NdPoint(result.getX() / neighborhood.size(),
+					result.getY() / neighborhood.size());
 			NdPoint myPoint = space.getLocation(this);
-			NdPoint otherPoint = new NdPoint(point.getX(), point.getY());
-			double angle = SpatialMath.calcAngleFor2DMovement(space, myPoint,
-					otherPoint);
-			space.moveByVector(this, 1, angle, 0);
-			myPoint = space.getLocation(this);
-			grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
+			return new NdPoint((result.getX() - myPoint.getX()) / 50,
+					(result.getY() - myPoint.getY()) / 50);
 		}
+		return new NdPoint(0, 0);
+	}
+
+	private NdPoint rule2() {
+		ArrayList<Sheep> neighborhood = neighborhood();
+		if (neighborhood.size() > 0) {
+			NdPoint result = new NdPoint(0, 0);
+			for (Sheep sheep : neighborhood) {
+				if (distance(sheep) < 0.5) {
+					NdPoint myPoint = space.getLocation(this);
+					NdPoint otherPoint = space.getLocation(sheep);
+					result = new NdPoint(result.getX()
+							- (otherPoint.getX() - myPoint.getX()),
+							result.getY()
+									- (otherPoint.getY() - myPoint.getY()));
+					// c = c - (b.position - bJ.position)
+				}
+			}
+			return result;
+		}
+		return new NdPoint(0, 0);
+	}
+
+	private NdPoint rule3() {
+		ArrayList<Sheep> neighborhood = neighborhood();
+		if (neighborhood.size() > 0) {
+			NdPoint result = new NdPoint(0, 0);
+			for (Sheep sheep : neighborhood) {
+				result = new NdPoint(result.getX() + sheep.velocity.getX(),
+						result.getY() + sheep.velocity.getY());
+			}
+			result = new NdPoint(result.getX() / neighborhood.size(),
+					result.getY() / neighborhood.size());
+			return new NdPoint((result.getX() - velocity.getX()) / 8,
+					(result.getY() - velocity.getY()) / 8);
+		}
+		return new NdPoint(0, 0);
+	}
+
+	private void slowDown() {
+		if (Math.hypot(velocity.getX(), velocity.getY()) > MAX_VELOCITY) {
+			velocity = new NdPoint(velocity.getX() * 0.8, velocity.getY() * 0.8);
+		}
+	}
+
+	private double distance(Sheep sheep) {
+		NdPoint myPoint = space.getLocation(this);
+		NdPoint otherPoint = space.getLocation(sheep);
+		return space.getDistance(myPoint, otherPoint);
 	}
 
 	private void forward() {
-		NdPoint point = space.getLocation(this);
-		float moveX = (float) (point.getX() + Math.cos(heading) * distance);
-		float moveY = (float) (point.getY() + Math.sin(heading) * distance);
-		space.moveTo(this, moveX, moveY);
-		grid.moveTo(this, Math.round(moveX), Math.round(moveY));
-	}
-
-	private List<Sheep> getNeighborhood() {
-		GridPoint point = grid.getLocation(this);
-		MooreQuery<Sheep> query = new MooreQuery<>(grid, this);
-		List<Sheep> neighborhoodSheep = StreamSupport.stream(
-				query.query().spliterator(), false)
-				.collect(Collectors.toList());
-
-		for (Sheep sheep : grid.getObjectsAt(point.getX(), point.getY())) {
-			neighborhoodSheep.add(sheep);
-		}
-		neighborhoodSheep.remove(this);
-		SimUtilities.shuffle(neighborhoodSheep, RandomHelper.getUniform());
-		return neighborhoodSheep;
-	}
-
-	private double alignmentDirection() {
-		List<Sheep> neighborhoodSheep = getNeighborhood();
-		double avgHeading = heading;
-		for (Sheep sheep : neighborhoodSheep) {
-			avgHeading = averageTwoDirections(avgHeading, towards(sheep));
-		}
-		return avgHeading;
-	}
-
-	private double averageTwoDirections(double angle1, double angle2) {
-		assert (angle1 <= Math.PI * 2);
-		assert (angle2 <= Math.PI * 2);
-		angle1 = Math.toDegrees(angle1);
-		angle2 = Math.toDegrees(angle2);
-		if (Math.abs(angle1 - angle2) < 180) {
-			return Math.toRadians((angle1 + angle2) / 2);
-		} else {
-			return oppositeDirection((oppositeDirection(angle1) + oppositeDirection(angle2)) / 2);
-		}
-	}
-
-	public double oppositeDirection(double angle) {
-		assert (angle <= Math.PI * 2);
-		angle = Math.toDegrees(angle);
-		return Math.toRadians((angle + 180) % 360);
-	}
-
-	public double towards(Sheep boid) {
-		NdPoint myPoint = space.getLocation(this);
-		NdPoint otherPoint = space.getLocation(boid);
-		return SpatialMath.calcAngleFor2DMovement(space, myPoint, otherPoint);
-	}
-
-	public double cohesionDirection() {
-		List<Sheep> boidSet = getNeighborhood();
-		if (boidSet.size() > 0) {
-			double avgBoidDirection = heading;
-			double avgBoidDistance = desiredDistance;
-			for (Sheep boid : boidSet) {
-				avgBoidDirection = averageTwoDirections(boid.getHeading(),
-						avgBoidDirection);
-				avgBoidDistance = avgBoidDistance + distance(boid) / 2;
-			}
-			if (avgBoidDistance > desiredDistance) {
-				moveTowards(avgBoidDirection, 0.2 * cohesionWeight);
-				return avgBoidDirection;
-			} else {
-				return heading;
-			}
-		} else {
-			return heading;
-		}
-	}
-
-	public void moveTowards(double direction, double dist) {
 		NdPoint pt = space.getLocation(this);
-		double moveX = pt.getX() + Math.cos(heading) * dist;
-		double moveY = pt.getY() + Math.sin(heading) * dist;
+		double moveX = pt.getX() + velocity.getX();
+		double moveY = pt.getY() + velocity.getY();
 		space.moveTo(this, moveX, moveY);
+		grid.moveTo(this, (int) moveX, (int) moveY);
 	}
 
-	public double distance(Sheep boid) {
+	private ArrayList<Sheep> neighborhood() {
+		MooreQuery<Sheep> query = new MooreQuery<>(grid, this,
+				NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS);
+		Iterator<Sheep> iter = query.query().iterator();
+		ArrayList<Sheep> sheepSet = new ArrayList<Sheep>();
+		while (iter.hasNext()) {
+			sheepSet.add(iter.next());
+		}
+		Iterable<Sheep> list = grid.getObjectsAt(grid.getLocation(this).getX(),
+				grid.getLocation(this).getY());
+		for (Sheep sheep : list) {
+			sheepSet.add(sheep);
+		}
+		SimUtilities.shuffle(sheepSet, RandomHelper.getUniform());
+		sheepSet.remove(this);
+		ArrayList<Sheep> circularNeighborhood = new ArrayList<Sheep>();
+		for (Sheep sheep : sheepSet) {
+			if (distance(sheep) <= NEIGHBORHOOD_RADIUS
+					&& isInVisibleRange(sheep)) {
+				circularNeighborhood.add(sheep);
+			}
+		}
+		return circularNeighborhood;
+	}
+
+	private boolean isInVisibleRange(Sheep sheep) {
 		NdPoint myPoint = space.getLocation(this);
-		NdPoint otherPoint = space.getLocation(boid);
-		double differenceX = Math.abs(myPoint.getX() - otherPoint.getX());
-		double differenceY = Math.abs(myPoint.getY() - otherPoint.getY());
-		return Math.hypot(differenceX, differenceY);
+		NdPoint otherPoint = space.getLocation(sheep);
+		double degree = Math.atan2(otherPoint.getY() - myPoint.getY(),
+				otherPoint.getX() - myPoint.getX());
+		return true; // tODO
 	}
 
-	public double separationDirection() {
-		List<Sheep> boidSet = getNeighborhood();
-		ArrayList<Sheep> boidsTooClose = new ArrayList<Sheep>();
-		for (Sheep boid : boidSet) {
-			if (distance(boid) < desiredDistance) {
-				boidsTooClose.add(boid);
-			}
-		}
-		if (boidsTooClose.size() > 0) {
-			double avgBoidDirection = heading;
-			double distanceToClosestBoid = Double.MAX_VALUE;
-			for (Sheep boid : boidsTooClose) {
-				avgBoidDirection = averageTwoDirections(boid.getHeading(),
-						avgBoidDirection);
-				if (distance(boid) < distanceToClosestBoid) {
-					distanceToClosestBoid = distance(boid);
-				}
-			}
-			if (distanceToClosestBoid < desiredDistance * 0.5) {
-				moveTowards(oppositeDirection(avgBoidDirection),
-						0.2 * separationWeight);
-			}
-			if (toMyLeft(avgBoidDirection)) {
-				return (heading + turnSpeed) % Math.PI * 2;
-			} else {
-				return (heading - turnSpeed) % Math.PI * 2;
-			}
-		}
-		return heading;
-	}
-
-	public boolean toMyLeft(double angle) {
-		double angleDegrees = Math.toDegrees(angle);
-		double headingDegrees = Math.toDegrees(heading);
-		if (Math.abs(angleDegrees - headingDegrees) < 180) {
-			if (angleDegrees < headingDegrees) {
-				return true;
-			} else
-				return false;
-		} else {
-			if (angleDegrees < headingDegrees) {
-				return false;
-			} else
-				return true;
-		}
-	}
-
-	public double getHeading() {
-		return heading;
+	public NdPoint getVelocity() {
+		return velocity;
 	}
 }
