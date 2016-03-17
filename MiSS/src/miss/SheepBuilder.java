@@ -33,7 +33,7 @@ public class SheepBuilder implements ContextBuilder<Sheep> {
 				new GridBuilderParameters<Sheep>(new WrapAroundBorders(),
 						new SimpleGridAdder<>(), true, 50, 50));
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 25; i++) {
 			context.add(new Sheep(space, grid));
 		}
 
