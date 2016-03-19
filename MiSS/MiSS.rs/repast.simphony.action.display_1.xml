@@ -4,7 +4,7 @@
   <styles>
     <entry>
       <string>miss.model.Sheep</string>
-      <string>repast.simphony.visualizationOGL2D.DefaultStyleOGL2D</string>
+      <string>miss.visualization.SheepVisualization</string>
     </entry>
   </styles>
   <editedStyles>
@@ -23,7 +23,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-193252818</hashCode>
+    <hashCode>-904830776</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>

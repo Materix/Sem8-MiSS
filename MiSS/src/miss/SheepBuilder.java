@@ -15,25 +15,29 @@ import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.SimpleGridAdder;
 import repast.simphony.space.grid.WrapAroundBorders;
 
-public class SheepBuilder implements ContextBuilder<Sheep> {
-	private static final int SIZE = 50;
+public class SheepBuilder implements ContextBuilder<Object> {
+	private static final int SIZE = 25;
 
-	private static final int SHEEP_COUNT = 25;
+	private static final int SHEEP_COUNT = 10;
+
+	private static final int OBSTACLE_COUNT = 10;
+
+	private static final int OBSTACLE_RADIUS = 5;
 
 	@Override
-	public Context<Sheep> build(Context<Sheep> context) {
+	public Context<Object> build(Context<Object> context) {
 		context.setId("MiSS");
 
 		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder
 				.createContinuousSpaceFactory(null);
-		ContinuousSpace<Sheep> space = spaceFactory.createContinuousSpace(
+		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace(
 				"space", context, new RandomCartesianAdder<>(),
 				new repast.simphony.space.continuous.WrapAroundBorders(), SIZE,
 				SIZE);
 
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
-		Grid<Sheep> grid = gridFactory.createGrid("grid", context,
-				new GridBuilderParameters<Sheep>(new WrapAroundBorders(),
+		Grid<Object> grid = gridFactory.createGrid("grid", context,
+				new GridBuilderParameters<Object>(new WrapAroundBorders(),
 						new SimpleGridAdder<>(), true, SIZE, SIZE));
 
 		for (int i = 0; i < SHEEP_COUNT; i++) {
