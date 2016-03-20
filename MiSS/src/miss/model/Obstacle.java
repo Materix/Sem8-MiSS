@@ -1,13 +1,13 @@
 package miss.model;
 
 public class Obstacle {
-	private final double obstacleRadius;
+	private final int obstacleRadius;
 
-	public Obstacle(double obstacleRadius) {
+	public Obstacle(int obstacleRadius) {
 		this.obstacleRadius = obstacleRadius;
 	}
 
-	public double getObstacleRadius() {
+	public int getObstacleRadius() {
 		return obstacleRadius;
 	}
 

@@ -7,7 +7,6 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
-import repast.simphony.space.grid.Grid;
 
 public class Sheep {
 	private static final int NEIGHBORHOOD_RADIUS = 3;
@@ -20,7 +19,7 @@ public class Sheep {
 
 	private NdPoint speed;
 
-	public Sheep(ContinuousSpace<Object> space, Grid<Object> grid) {
+	public Sheep(ContinuousSpace<Object> space) {
 		this.space = space;
 
 		speed = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
@@ -32,9 +31,11 @@ public class Sheep {
 		NdPoint v1 = rule1();
 		NdPoint v2 = rule2();
 		NdPoint v3 = rule3();
+		NdPoint v4 = avoidObstacles();
 
-		speed = new NdPoint(speed.getX() + v1.getX() + v2.getX() + v3.getX(),
-				speed.getY() + v1.getY() + v2.getY() + v3.getY());
+		speed = new NdPoint(speed.getX() + v1.getX() + v2.getX() + v3.getX()
+				+ v4.getX(), speed.getY() + v1.getY() + v2.getY() + v3.getY()
+				+ v4.getY());
 
 		slowDown();
 		forward();
@@ -98,6 +99,23 @@ public class Sheep {
 		return new NdPoint(0, 0);
 	}
 
+	private NdPoint avoidObstacles() {
+		List<Obstacle> obstacles = getObstacles();
+		if (obstacles.size() > 0) {
+			NdPoint result = new NdPoint(0, 0);
+			for (Obstacle obstacle : obstacles) {
+				NdPoint myPoint = space.getLocation(this);
+				NdPoint otherPoint = space.getLocation(obstacle);
+				double[] displacement = space.getDisplacement(myPoint,
+						otherPoint);
+				result = new NdPoint(result.getX() - displacement[0],
+						result.getY() - displacement[1]);
+			}
+			return new NdPoint(result.getX() / 20, result.getY() / 20);
+		}
+		return new NdPoint(0, 0);
+	}
+
 	// speed limit
 	private void slowDown() {
 		if (Math.hypot(speed.getX(), speed.getY()) > MAX_VELOCITY) {
@@ -105,10 +123,9 @@ public class Sheep {
 		}
 	}
 
-	private double distance(Sheep sheep) {
+	private double distance(Object object) {
 		NdPoint myPoint = space.getLocation(this);
-		NdPoint otherPoint = space.getLocation(sheep);
-		double distance = space.getDistance(myPoint, otherPoint);
+		NdPoint otherPoint = space.getLocation(object);
 		return space.getDistance(myPoint, otherPoint);
 	}
 
@@ -135,12 +152,28 @@ public class Sheep {
 		return circularNeighborhood;
 	}
 
-	private boolean isInVisibleRange(Sheep sheep) {
+	private List<Obstacle> getObstacles() {
+		List<Obstacle> obstacles = new ArrayList<Obstacle>();
+		for (Object object : space.getObjects()) {
+			if (object instanceof Obstacle) {
+				Obstacle sheep = (Obstacle) object;
+				if (!sheep.equals(this)) {
+					if (distance(sheep) <= NEIGHBORHOOD_RADIUS
+							&& isInVisibleRange(sheep)) {
+						obstacles.add(sheep);
+					}
+				}
+			}
+		}
+		return obstacles;
+	}
+
+	private boolean isInVisibleRange(Object object) {
 		NdPoint myPoint = space.getLocation(this);
-		NdPoint otherPoint = space.getLocation(sheep);
-		double degree = Math.atan2(otherPoint.getY() - myPoint.getY(),
+		NdPoint otherPoint = space.getLocation(object);
+		double radian = Math.atan2(otherPoint.getY() - myPoint.getY(),
 				otherPoint.getX() - myPoint.getX());
-		return true; // TODO
+		return radian < Math.toRadians(120);
 	}
 
 	public NdPoint getSpeed() {

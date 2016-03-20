@@ -28,7 +28,7 @@ public class SheepVisualization implements StyleOGL2D<Sheep> {
 
 		Shape shape = IconFactory2D.getShape("triangle");
 		Rectangle2D bounds = shape.getBounds2D();
-		float size = 15;
+		float size = 20;
 		float scaleX = size / (float) bounds.getWidth();
 		float scaleY = size / (float) bounds.getWidth();
 		shape = AffineTransform.getScaleInstance(0.5 * scaleX, scaleY)

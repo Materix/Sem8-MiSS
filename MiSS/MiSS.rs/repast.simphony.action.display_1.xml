@@ -3,11 +3,19 @@
   <type>2D</type>
   <styles>
     <entry>
+      <string>miss.model.Obstacle</string>
+      <string>miss.visualization.ObstacleVisualization</string>
+    </entry>
+    <entry>
       <string>miss.model.Sheep</string>
       <string>miss.visualization.SheepVisualization</string>
     </entry>
   </styles>
   <editedStyles>
+    <entry>
+      <string>miss.model.Obstacle</string>
+      <null/>
+    </entry>
     <entry>
       <string>miss.model.Sheep</string>
       <null/>
@@ -23,15 +31,19 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-904830776</hashCode>
+    <hashCode>1654066688</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>miss.model.Sheep</string>
+      <string>miss.model.Obstacle</string>
       <int>0</int>
+    </entry>
+    <entry>
+      <string>miss.model.Sheep</string>
+      <int>1</int>
     </entry>
   </layerOrder>
   <projections>
@@ -42,7 +54,7 @@
     </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <visualizationProperties class="repast.simphony.visualization.UnitSizeLayoutProperties">
-    <unitSize>15.0</unitSize>
+    <unitSize>20.0</unitSize>
   </visualizationProperties>
   <projectionDescriptors>
     <entry>
@@ -59,7 +71,7 @@
               </entry>
               <entry>
                 <string>UNIT_SIZE</string>
-                <float>15.0</float>
+                <float>20.0</float>
               </entry>
               <entry>
                 <string>SHOW</string>
