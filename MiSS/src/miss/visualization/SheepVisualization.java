@@ -8,7 +8,6 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 
 import miss.model.Sheep;
-import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.visualization.gui.styleBuilder.IconFactory2D;
 import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.NamedShapeCreator;
@@ -66,9 +65,8 @@ public class SheepVisualization implements StyleOGL2D<Sheep> {
 
 	@Override
 	public float getRotation(Sheep sheep) {
-		NdPoint speed = sheep.getSpeed();
-		double angle = Math.atan2(speed.getX(), speed.getY());
-		return (float) Math.toDegrees(angle);
+		// return 90;
+		return 90 - ((float) Math.toDegrees(sheep.getRotation()));
 	}
 
 	@Override

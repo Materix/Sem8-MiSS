@@ -3,17 +3,24 @@ package miss.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
 public class Sheep {
+	private static final double MIN_DISTANCE_TO_BOUNDARY = 1;
+
 	private static final int NEIGHBORHOOD_RADIUS = 3;
+
+	private static final int OBSTACLE_DETECT_RADIUS = 1;
 
 	private static final double MAX_VELOCITY = 0.5;
 
 	private static final double MIN_DISTANCE = 1;
+
+	private static final double MIN_VELOCITY = 0.1;
 
 	private ContinuousSpace<Object> space;
 
@@ -21,33 +28,59 @@ public class Sheep {
 
 	public Sheep(ContinuousSpace<Object> space) {
 		this.space = space;
-
 		speed = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
 				RandomHelper.nextDoubleFromTo(-1, 1));
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void step() {
-		NdPoint v1 = rule1();
-		NdPoint v2 = rule2();
-		NdPoint v3 = rule3();
-		NdPoint v4 = avoidObstacles();
+		cohesianRule();
+		separationRule();
+		speedAlignmentRule();
+	}
 
-		speed = new NdPoint(speed.getX() + v1.getX() + v2.getX() + v3.getX()
-				+ v4.getX(), speed.getY() + v1.getY() + v2.getY() + v3.getY()
-				+ v4.getY());
-
+	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
+	public void forward() {
 		slowDown();
-		forward();
+		NdPoint pt = space.getLocation(this);
+		double moveX = pt.getX() + speed.getX();
+		double moveY = pt.getY() + speed.getY();
+		space.moveTo(this, moveX, moveY);
+	}
+
+	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.FIRST_PRIORITY)
+	public void avoid() {
+		avoidObstacles();
+		avoidBoundary();
+	}
+
+	private void avoidBoundary() {
+		NdPoint myPoint = space.getLocation(this);
+		if (myPoint.getX() < MIN_DISTANCE_TO_BOUNDARY
+				&& (getRotation() < -Math.PI / 2 || getRotation() > Math.PI / 2)) {
+			speed = new NdPoint(-speed.getX(), speed.getY());
+		} else if (myPoint.getX() > space.getDimensions().getDimension(0)
+				- MIN_DISTANCE_TO_BOUNDARY
+				&& (getRotation() > -Math.PI / 2 || getRotation() < Math.PI / 2)) {
+			speed = new NdPoint(-speed.getX(), speed.getY());
+		}
+		if (myPoint.getY() < MIN_DISTANCE_TO_BOUNDARY && getRotation() < 0) {
+			speed = new NdPoint(speed.getX(), -speed.getY());
+		} else if (myPoint.getY() > space.getDimensions().getDimension(1)
+				- MIN_DISTANCE_TO_BOUNDARY
+				&& getRotation() > 0) {
+			speed = new NdPoint(speed.getX(), -speed.getY());
+		}
 	}
 
 	// cohesion
 	// TODO tu jest problem z liczeniem œredniej. Jak przekroczy granicê to siê
 	// nagle œrodek grupy umieszcze w œrodku planszy
-	private NdPoint rule1() {
+	private void cohesianRule() {
 		List<Sheep> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0) {
 			NdPoint result = new NdPoint(0, 0);
+
 			for (Sheep sheep : neighborhood) {
 				NdPoint otherPoint = space.getLocation(sheep);
 				result = new NdPoint(result.getX() + otherPoint.getX(),
@@ -57,13 +90,13 @@ public class Sheep {
 					result.getY() / neighborhood.size());
 			NdPoint myPoint = space.getLocation(this);
 			double[] displacement = space.getDisplacement(myPoint, result);
-			return new NdPoint(displacement[0] / 50, displacement[1] / 50);
+			result = new NdPoint(displacement[0] / 50, displacement[1] / 50);
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
 		}
-		return new NdPoint(0, 0);
 	}
 
-	// separation
-	private NdPoint rule2() {
+	private void separationRule() {
 		List<Sheep> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0) {
 			NdPoint result = new NdPoint(0, 0);
@@ -77,13 +110,13 @@ public class Sheep {
 							result.getY() - displacement[1]);
 				}
 			}
-			return new NdPoint(result.getX() / 2, result.getY() / 2);
+			result = new NdPoint(result.getX() / 8, result.getY() / 8);
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
 		}
-		return new NdPoint(0, 0);
 	}
 
-	// speed alignment
-	private NdPoint rule3() {
+	private void speedAlignmentRule() {
 		List<Sheep> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0) {
 			NdPoint result = new NdPoint(0, 0);
@@ -93,27 +126,34 @@ public class Sheep {
 			}
 			result = new NdPoint(result.getX() / neighborhood.size(),
 					result.getY() / neighborhood.size());
-			return new NdPoint((result.getX() - speed.getX()) / 8,
+			result = new NdPoint((result.getX() - speed.getX()) / 8,
 					(result.getY() - speed.getY()) / 8);
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
 		}
-		return new NdPoint(0, 0);
 	}
 
-	private NdPoint avoidObstacles() {
+	private void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
 		if (obstacles.size() > 0) {
 			NdPoint result = new NdPoint(0, 0);
+			double avgDistance = 0;
 			for (Obstacle obstacle : obstacles) {
 				NdPoint myPoint = space.getLocation(this);
 				NdPoint otherPoint = space.getLocation(obstacle);
 				double[] displacement = space.getDisplacement(myPoint,
 						otherPoint);
+				avgDistance += distance(obstacle)
+						- obstacle.getObstacleRadius();
 				result = new NdPoint(result.getX() - displacement[0],
 						result.getY() - displacement[1]);
 			}
-			return new NdPoint(result.getX() / 20, result.getY() / 20);
+			avgDistance /= obstacles.size();
+			double weight = 20 * avgDistance;
+			result = new NdPoint(result.getX() / weight, result.getY() / weight);
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
 		}
-		return new NdPoint(0, 0);
 	}
 
 	// speed limit
@@ -121,19 +161,15 @@ public class Sheep {
 		if (Math.hypot(speed.getX(), speed.getY()) > MAX_VELOCITY) {
 			speed = new NdPoint(speed.getX() * 0.8, speed.getY() * 0.8);
 		}
+		if (Math.hypot(speed.getX(), speed.getY()) < MIN_VELOCITY) {
+			speed = new NdPoint(speed.getX() * 1.3, speed.getY() * 1.3);
+		}
 	}
 
 	private double distance(Object object) {
 		NdPoint myPoint = space.getLocation(this);
 		NdPoint otherPoint = space.getLocation(object);
 		return space.getDistance(myPoint, otherPoint);
-	}
-
-	private void forward() {
-		NdPoint pt = space.getLocation(this);
-		double moveX = pt.getX() + speed.getX();
-		double moveY = pt.getY() + speed.getY();
-		space.moveTo(this, moveX, moveY);
 	}
 
 	private List<Sheep> getNeighborhood() {
@@ -156,11 +192,12 @@ public class Sheep {
 		List<Obstacle> obstacles = new ArrayList<Obstacle>();
 		for (Object object : space.getObjects()) {
 			if (object instanceof Obstacle) {
-				Obstacle sheep = (Obstacle) object;
-				if (!sheep.equals(this)) {
-					if (distance(sheep) <= NEIGHBORHOOD_RADIUS
-							&& isInVisibleRange(sheep)) {
-						obstacles.add(sheep);
+				Obstacle obstacle = (Obstacle) object;
+				if (!obstacle.equals(this)) {
+					if (distance(obstacle) <= OBSTACLE_DETECT_RADIUS
+							+ obstacle.getObstacleRadius()
+							&& isInVisibleRange(obstacle)) {
+						obstacles.add(obstacle);
 					}
 				}
 			}
@@ -173,10 +210,14 @@ public class Sheep {
 		NdPoint otherPoint = space.getLocation(object);
 		double radian = Math.atan2(otherPoint.getY() - myPoint.getY(),
 				otherPoint.getX() - myPoint.getX());
-		return radian < Math.toRadians(120);
+		return Math.abs(radian - getRotation()) < Math.toRadians(120);
 	}
 
 	public NdPoint getSpeed() {
 		return speed;
+	}
+
+	public double getRotation() {
+		return Math.atan2(speed.getY(), speed.getX());
 	}
 }
