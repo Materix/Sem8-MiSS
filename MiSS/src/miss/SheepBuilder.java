@@ -13,13 +13,13 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.WrapAroundBorders;
 
 public class SheepBuilder implements ContextBuilder<Object> {
-	private static final int SIZE = 100;
+	private static final int SIZE = 50;
 
 	private static final int BOUND_SIZE = 3;
 
-	private static final int SHEEP_COUNT = 100;
+	private static final int SHEEP_COUNT = 25;
 
-	private static final int OBSTACLE_COUNT = 15;
+	private static final int OBSTACLE_COUNT = 10;
 
 	private static final int OBSTACLE_RADIUS = 2;
 

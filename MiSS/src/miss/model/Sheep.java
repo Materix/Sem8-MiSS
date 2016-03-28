@@ -10,6 +10,10 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
 public class Sheep {
+	private static final double MAX_ROTATION_SPEED = 0.5;
+
+	private static final double MIN_ROTATION_SPEED = 0.2;
+
 	private static final double MIN_DISTANCE_TO_BOUNDARY = 1;
 
 	private static final int NEIGHBORHOOD_RADIUS = 3;
@@ -18,7 +22,7 @@ public class Sheep {
 
 	private static final double MAX_VELOCITY = 0.5;
 
-	private static final double MIN_DISTANCE = 1;
+	private static final double MIN_DISTANCE = 1.5;
 
 	private static final double MIN_VELOCITY = 0.1;
 
@@ -88,9 +92,10 @@ public class Sheep {
 			}
 			result = new NdPoint(result.getX() / neighborhood.size(),
 					result.getY() / neighborhood.size());
+			// turnTo(result, 0.1);
 			NdPoint myPoint = space.getLocation(this);
 			double[] displacement = space.getDisplacement(myPoint, result);
-			result = new NdPoint(displacement[0] / 50, displacement[1] / 50);
+			result = new NdPoint(displacement[0] / 20, displacement[1] / 20);
 			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
 					+ result.getY());
 		}
@@ -110,7 +115,8 @@ public class Sheep {
 							result.getY() - displacement[1]);
 				}
 			}
-			result = new NdPoint(result.getX() / 8, result.getY() / 8);
+			// turnTo(result);
+			result = new NdPoint(result.getX() / 15, result.getY() / 15);
 			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
 					+ result.getY());
 		}
@@ -150,6 +156,7 @@ public class Sheep {
 			}
 			avgDistance /= obstacles.size();
 			double weight = 20 * avgDistance;
+			// turnTo(result);
 			result = new NdPoint(result.getX() / weight, result.getY() / weight);
 			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
 					+ result.getY());
@@ -158,12 +165,31 @@ public class Sheep {
 
 	// speed limit
 	private void slowDown() {
-		if (Math.hypot(speed.getX(), speed.getY()) > MAX_VELOCITY) {
+		if (getVelocity() > MAX_VELOCITY) {
 			speed = new NdPoint(speed.getX() * 0.8, speed.getY() * 0.8);
 		}
-		if (Math.hypot(speed.getX(), speed.getY()) < MIN_VELOCITY) {
+		if (getVelocity() < MIN_VELOCITY) {
 			speed = new NdPoint(speed.getX() * 1.3, speed.getY() * 1.3);
 		}
+	}
+
+	double getVelocity() {
+		return Math.hypot(speed.getX(), speed.getY());
+	}
+
+	private void turnTo(NdPoint point, double velocityDelta) {
+		NdPoint myPoint = space.getLocation(this);
+		double azimuth = Math.atan2(point.getY() - myPoint.getY(), point.getX()
+				- myPoint.getX());
+		double rotation = getRotation();
+		double velocity = getVelocity();
+		velocity += velocityDelta;
+
+		double newRotation = ((azimuth - rotation) / Math.PI)
+				* (MAX_ROTATION_SPEED - MIN_ROTATION_SPEED)
+				+ MIN_ROTATION_SPEED;
+		speed = new NdPoint(velocity * Math.cos(newRotation), velocity
+				* Math.sin(newRotation));
 	}
 
 	private double distance(Object object) {
