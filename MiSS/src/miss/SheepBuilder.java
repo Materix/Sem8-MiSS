@@ -6,40 +6,40 @@ import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.Dimensions;
 import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
-import repast.simphony.space.continuous.WrapAroundBorders;
+import repast.simphony.space.continuous.StrictBorders;
 
 public class SheepBuilder implements ContextBuilder<Object> {
-	private static final int SIZE = 50;
-
 	private static final int BOUND_SIZE = 3;
-
-	private static final int SHEEP_COUNT = 25;
-
-	private static final int OBSTACLE_COUNT = 10;
-
-	private static final int OBSTACLE_RADIUS = 2;
 
 	@Override
 	public Context<Object> build(Context<Object> context) {
+		Parameters params = RunEnvironment.getInstance().getParameters();
+		int size = params.getInteger("size");
+		int sheepCount = params.getInteger("sheepCount");
+		int obstacleCount = params.getInteger("obstacleCount");
+		int obstacleRadius = params.getInteger("obstacleRadius");
+
 		context.setId("MiSS");
 
 		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder
 				.createContinuousSpaceFactory(null);
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace(
 				"space", context, new NotOnBoundRandomCartesianAdder<>(
-						BOUND_SIZE), new WrapAroundBorders(), SIZE, SIZE);
+						BOUND_SIZE), new StrictBorders(), size, size);
 
-		for (int i = 0; i < SHEEP_COUNT; i++) {
+		for (int i = 0; i < sheepCount; i++) {
 			Sheep sheep = new Sheep(space);
 			context.add(sheep);
 		}
 
-		for (int i = 0; i < OBSTACLE_COUNT; i++) {
-			Obstacle obstacle = new Obstacle(OBSTACLE_RADIUS);
+		for (int i = 0; i < obstacleCount; i++) {
+			Obstacle obstacle = new Obstacle(obstacleRadius);
 			context.add(obstacle);
 		}
 

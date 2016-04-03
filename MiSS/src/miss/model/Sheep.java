@@ -1,30 +1,44 @@
 package miss.model;
 
+import groovy.util.ObservableMap;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.random.RandomHelper;
+import repast.simphony.relogo.ReLogoModel;
+import repast.simphony.space.SpatialException;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
 public class Sheep {
-	private static final double MAX_ROTATION_SPEED = 0.5;
+	private double cohesianRuleWeight;
 
-	private static final double MIN_ROTATION_SPEED = 0.2;
+	private double separationRuleWeight;
 
-	private static final double MIN_DISTANCE_TO_BOUNDARY = 1;
+	private double speedAlignmentRuleWeight;
 
-	private static final int NEIGHBORHOOD_RADIUS = 3;
+	private double maxRotationSpeed;
 
-	private static final int OBSTACLE_DETECT_RADIUS = 1;
+	private double minRotationSpeed;
 
-	private static final double MAX_VELOCITY = 0.5;
+	private double minDistanceToBoundary;
 
-	private static final double MIN_DISTANCE = 1.5;
+	private double neighborhoodRadius;
 
-	private static final double MIN_VELOCITY = 0.1;
+	private double obstacleDetectionRadius;
+
+	private double maxVelocity;
+
+	private double minVelocity;
+
+	private double minDistance;
+
+	private double angleOfSight;
+
+	private static final double BOUNDARY_PUSH_FORCE = 0.1;
 
 	private ContinuousSpace<Object> space;
 
@@ -36,110 +50,151 @@ public class Sheep {
 				RandomHelper.nextDoubleFromTo(-1, 1));
 	}
 
-	@ScheduledMethod(start = 1, interval = 1)
-	public void step() {
-		cohesianRule();
-		separationRule();
-		speedAlignmentRule();
+	// @Setup
+	@ScheduledMethod(start = 0, duration = 0)
+	public void setup() {
+		ReLogoModel model = ReLogoModel.getInstance();
+
+		maxRotationSpeed = Double.parseDouble(model.getModelParam(
+				SheepProperties.MAX_ROTATION_SPEED).toString());
+		minRotationSpeed = Double.parseDouble(model.getModelParam(
+				SheepProperties.MIN_ROTATION_SPEED).toString());
+		minDistanceToBoundary = Double.parseDouble(model.getModelParam(
+				SheepProperties.MIN_DISTANCE_TO_BOUNDARY).toString());
+		neighborhoodRadius = Double.parseDouble(model.getModelParam(
+				SheepProperties.NEIGHBORHOOD_RADIUS).toString());
+		obstacleDetectionRadius = Double.parseDouble(model.getModelParam(
+				SheepProperties.OBSTACLE_DETECTION_RADIUS).toString());
+		maxVelocity = Double.parseDouble(model.getModelParam(
+				SheepProperties.MAX_VELOCITY).toString());
+		minVelocity = Double.parseDouble(model.getModelParam(
+				SheepProperties.MIN_VELOCITY).toString());
+		minDistance = Double.parseDouble(model.getModelParam(
+				SheepProperties.MIN_DISTANCE).toString());
+		cohesianRuleWeight = Double.parseDouble(model.getModelParam(
+				SheepProperties.COHESIAN_RULE_WEIGHT).toString());
+		separationRuleWeight = Double.parseDouble(model.getModelParam(
+				SheepProperties.SEPARATION_RULE_WEIGHT).toString());
+		speedAlignmentRuleWeight = Double.parseDouble(model.getModelParam(
+				SheepProperties.SPEED_ALIGNMENT_RULE_WEIGHT).toString());
+		angleOfSight = Double.parseDouble(model.getModelParam(
+				SheepProperties.ANGLE_OF_SIGHT).toString());
+
+		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
+
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.MAX_ROTATION_SPEED,
+				event -> maxRotationSpeed = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.MIN_ROTATION_SPEED,
+				event -> minRotationSpeed = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.MIN_DISTANCE_TO_BOUNDARY,
+				event -> minDistanceToBoundary = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.NEIGHBORHOOD_RADIUS,
+				event -> neighborhoodRadius = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.OBSTACLE_DETECTION_RADIUS,
+				event -> obstacleDetectionRadius = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.MAX_VELOCITY,
+				event -> maxVelocity = Double.parseDouble(event.getNewValue()
+						.toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.MIN_VELOCITY,
+				event -> minVelocity = Double.parseDouble(event.getNewValue()
+						.toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.MIN_DISTANCE,
+				event -> minDistance = Double.parseDouble(event.getNewValue()
+						.toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.COHESIAN_RULE_WEIGHT,
+				event -> cohesianRuleWeight = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.SEPARATION_RULE_WEIGHT,
+				event -> separationRuleWeight = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
+				event -> speedAlignmentRuleWeight = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				SheepProperties.ANGLE_OF_SIGHT,
+				event -> angleOfSight = Double.parseDouble(event.getNewValue()
+						.toString()));
+
 	}
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	public void forward() {
-		slowDown();
+		limitSpeed();
+		avoidBoundary();
+		avoidObstacles();
 		NdPoint pt = space.getLocation(this);
 		double moveX = pt.getX() + speed.getX();
 		double moveY = pt.getY() + speed.getY();
-		space.moveTo(this, moveX, moveY);
+		try {
+			space.moveTo(this, moveX, moveY);
+		} catch (SpatialException e) {
+			System.err.println("Catched SpatialException:" + e.getMessage());
+		}
 	}
 
-	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.FIRST_PRIORITY)
-	public void avoid() {
-		avoidObstacles();
-		avoidBoundary();
+	// speed limit
+	private void limitSpeed() {
+		while (getVelocity() > maxVelocity) {
+			speed = new NdPoint(speed.getX() * 0.8, speed.getY() * 0.8);
+		}
+		while (getVelocity() < minVelocity) {
+			speed = new NdPoint(speed.getX() * 1.3, speed.getY() * 1.3);
+		}
 	}
 
-	private void avoidBoundary() {
+	// @ScheduledMethod(start = 1, interval = 1, priority =
+	// ScheduleParameters.FIRST_PRIORITY)
+	public void avoidBoundary() {
 		NdPoint myPoint = space.getLocation(this);
-		if (myPoint.getX() < MIN_DISTANCE_TO_BOUNDARY
+		NdPoint result = new NdPoint(0, 0);
+		if (myPoint.getX() < minDistanceToBoundary
 				&& (getRotation() < -Math.PI / 2 || getRotation() > Math.PI / 2)) {
-			speed = new NdPoint(-speed.getX(), speed.getY());
+			// <-
+			result = new NdPoint(result.getX() + BOUNDARY_PUSH_FORCE,
+					result.getY());
 		} else if (myPoint.getX() > space.getDimensions().getDimension(0)
-				- MIN_DISTANCE_TO_BOUNDARY
+				- minDistanceToBoundary
 				&& (getRotation() > -Math.PI / 2 || getRotation() < Math.PI / 2)) {
-			speed = new NdPoint(-speed.getX(), speed.getY());
+			// ->
+			result = new NdPoint(result.getX() - BOUNDARY_PUSH_FORCE,
+					result.getY());
 		}
-		if (myPoint.getY() < MIN_DISTANCE_TO_BOUNDARY && getRotation() < 0) {
-			speed = new NdPoint(speed.getX(), -speed.getY());
+		if (myPoint.getY() < minDistanceToBoundary && getRotation() < 0) {
+			// |
+			// v
+			result = new NdPoint(result.getX(), result.getY()
+					+ BOUNDARY_PUSH_FORCE);
 		} else if (myPoint.getY() > space.getDimensions().getDimension(1)
-				- MIN_DISTANCE_TO_BOUNDARY
+				- minDistanceToBoundary
 				&& getRotation() > 0) {
-			speed = new NdPoint(speed.getX(), -speed.getY());
+			// ^
+			// |
+			result = new NdPoint(result.getX(), result.getY()
+					- BOUNDARY_PUSH_FORCE);
 		}
+		speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+				+ result.getY());
 	}
 
-	// cohesion
-	// TODO tu jest problem z liczeniem œredniej. Jak przekroczy granicê to siê
-	// nagle œrodek grupy umieszcze w œrodku planszy
-	private void cohesianRule() {
-		List<Sheep> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0) {
-			NdPoint result = new NdPoint(0, 0);
-
-			for (Sheep sheep : neighborhood) {
-				NdPoint otherPoint = space.getLocation(sheep);
-				result = new NdPoint(result.getX() + otherPoint.getX(),
-						result.getY() + otherPoint.getY());
-			}
-			result = new NdPoint(result.getX() / neighborhood.size(),
-					result.getY() / neighborhood.size());
-			// turnTo(result, 0.1);
-			NdPoint myPoint = space.getLocation(this);
-			double[] displacement = space.getDisplacement(myPoint, result);
-			result = new NdPoint(displacement[0] / 20, displacement[1] / 20);
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
-		}
-	}
-
-	private void separationRule() {
-		List<Sheep> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0) {
-			NdPoint result = new NdPoint(0, 0);
-			for (Sheep sheep : neighborhood) {
-				if (distance(sheep) < MIN_DISTANCE) {
-					NdPoint myPoint = space.getLocation(this);
-					NdPoint otherPoint = space.getLocation(sheep);
-					double[] displacement = space.getDisplacement(myPoint,
-							otherPoint);
-					result = new NdPoint(result.getX() - displacement[0],
-							result.getY() - displacement[1]);
-				}
-			}
-			// turnTo(result);
-			result = new NdPoint(result.getX() / 15, result.getY() / 15);
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
-		}
-	}
-
-	private void speedAlignmentRule() {
-		List<Sheep> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0) {
-			NdPoint result = new NdPoint(0, 0);
-			for (Sheep sheep : neighborhood) {
-				result = new NdPoint(result.getX() + sheep.speed.getX(),
-						result.getY() + sheep.speed.getY());
-			}
-			result = new NdPoint(result.getX() / neighborhood.size(),
-					result.getY() / neighborhood.size());
-			result = new NdPoint((result.getX() - speed.getX()) / 8,
-					(result.getY() - speed.getY()) / 8);
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
-		}
-	}
-
-	private void avoidObstacles() {
+	// @ScheduledMethod(start = 1, interval = 1, priority =
+	// ScheduleParameters.FIRST_PRIORITY)
+	public void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
 		if (obstacles.size() > 0) {
 			NdPoint result = new NdPoint(0, 0);
@@ -163,14 +218,80 @@ public class Sheep {
 		}
 	}
 
-	// speed limit
-	private void slowDown() {
-		if (getVelocity() > MAX_VELOCITY) {
-			speed = new NdPoint(speed.getX() * 0.8, speed.getY() * 0.8);
+	// cohesion
+	// TODO tu jest problem z liczeniem œredniej. Jak przekroczy granicê to siê
+	// nagle œrodek grupy umieszcze w œrodku planszy
+	@ScheduledMethod(start = 1, interval = 1)
+	public void cohesianRule() {
+		List<Sheep> neighborhood = getNeighborhood();
+		if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
+			NdPoint result = new NdPoint(0, 0);
+
+			for (Sheep sheep : neighborhood) {
+				NdPoint otherPoint = space.getLocation(sheep);
+				result = new NdPoint(result.getX() + otherPoint.getX(),
+						result.getY() + otherPoint.getY());
+			}
+			result = new NdPoint(result.getX() / neighborhood.size(),
+					result.getY() / neighborhood.size());
+			// turnTo(result, 0.1);
+			NdPoint myPoint = space.getLocation(this);
+			double[] displacement = space.getDisplacement(myPoint, result);
+
+			result = new NdPoint(displacement[0] / cohesianRuleWeight,
+					displacement[1] / cohesianRuleWeight);
+
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
 		}
-		if (getVelocity() < MIN_VELOCITY) {
-			speed = new NdPoint(speed.getX() * 1.3, speed.getY() * 1.3);
+
+		forward();
+	}
+
+	@ScheduledMethod(start = 1, interval = 1)
+	public void separationRule() {
+		List<Sheep> neighborhood = getNeighborhood();
+		if (neighborhood.size() > 0 && separationRuleWeight != 0) {
+			NdPoint result = new NdPoint(0, 0);
+			for (Sheep sheep : neighborhood) {
+				if (distance(sheep) < minDistance) {
+					NdPoint myPoint = space.getLocation(this);
+					NdPoint otherPoint = space.getLocation(sheep);
+					double[] displacement = space.getDisplacement(myPoint,
+							otherPoint);
+					result = new NdPoint(result.getX() - displacement[0],
+							result.getY() - displacement[1]);
+				}
+			}
+			// turnTo(result);
+			result = new NdPoint(result.getX() / separationRuleWeight,
+					result.getY() / separationRuleWeight);
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
 		}
+
+		forward();
+	}
+
+	@ScheduledMethod(start = 1, interval = 1)
+	public void speedAlignmentRule() {
+		List<Sheep> neighborhood = getNeighborhood();
+		if (neighborhood.size() > 0 && speedAlignmentRuleWeight != 0) {
+			NdPoint result = new NdPoint(0, 0);
+			for (Sheep sheep : neighborhood) {
+				result = new NdPoint(result.getX() + sheep.speed.getX(),
+						result.getY() + sheep.speed.getY());
+			}
+			result = new NdPoint(result.getX() / neighborhood.size(),
+					result.getY() / neighborhood.size());
+			result = new NdPoint((result.getX() - speed.getX())
+					/ speedAlignmentRuleWeight, (result.getY() - speed.getY())
+					/ speedAlignmentRuleWeight);
+			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+					+ result.getY());
+		}
+
+		forward();
 	}
 
 	double getVelocity() {
@@ -186,8 +307,7 @@ public class Sheep {
 		velocity += velocityDelta;
 
 		double newRotation = ((azimuth - rotation) / Math.PI)
-				* (MAX_ROTATION_SPEED - MIN_ROTATION_SPEED)
-				+ MIN_ROTATION_SPEED;
+				* (maxRotationSpeed - minRotationSpeed) + minRotationSpeed;
 		speed = new NdPoint(velocity * Math.cos(newRotation), velocity
 				* Math.sin(newRotation));
 	}
@@ -204,7 +324,7 @@ public class Sheep {
 			if (object instanceof Sheep) {
 				Sheep sheep = (Sheep) object;
 				if (!sheep.equals(this)) {
-					if (distance(sheep) <= NEIGHBORHOOD_RADIUS
+					if (distance(sheep) <= neighborhoodRadius
 							&& isInVisibleRange(sheep)) {
 						circularNeighborhood.add(sheep);
 					}
@@ -220,7 +340,7 @@ public class Sheep {
 			if (object instanceof Obstacle) {
 				Obstacle obstacle = (Obstacle) object;
 				if (!obstacle.equals(this)) {
-					if (distance(obstacle) <= OBSTACLE_DETECT_RADIUS
+					if (distance(obstacle) <= obstacleDetectionRadius
 							+ obstacle.getObstacleRadius()
 							&& isInVisibleRange(obstacle)) {
 						obstacles.add(obstacle);
@@ -236,7 +356,7 @@ public class Sheep {
 		NdPoint otherPoint = space.getLocation(object);
 		double radian = Math.atan2(otherPoint.getY() - myPoint.getY(),
 				otherPoint.getX() - myPoint.getX());
-		return Math.abs(radian - getRotation()) < Math.toRadians(120);
+		return Math.abs(radian - getRotation()) < Math.toRadians(angleOfSight);
 	}
 
 	public NdPoint getSpeed() {
