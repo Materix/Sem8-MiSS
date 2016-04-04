@@ -40,6 +40,8 @@ public class Sheep {
 
 	private static final double BOUNDARY_PUSH_FORCE = 0.1;
 
+	private static final double AVOID_OBSTACLE_RULE_WEIGHT = 0.3;
+
 	private ContinuousSpace<Object> space;
 
 	private NdPoint speed;
@@ -197,24 +199,15 @@ public class Sheep {
 	public void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
 		if (obstacles.size() > 0) {
-			NdPoint result = new NdPoint(0, 0);
-			double avgDistance = 0;
 			for (Obstacle obstacle : obstacles) {
-				NdPoint myPoint = space.getLocation(this);
-				NdPoint otherPoint = space.getLocation(obstacle);
-				double[] displacement = space.getDisplacement(myPoint,
-						otherPoint);
-				avgDistance += distance(obstacle)
-						- obstacle.getObstacleRadius();
-				result = new NdPoint(result.getX() - displacement[0],
-						result.getY() - displacement[1]);
+				NdPoint thisLocation = space.getLocation(this);
+				NdPoint obstacleLocation = space.getLocation(obstacle);
+				double[] displacement = space.getDisplacement(obstacleLocation,
+						thisLocation);
+				speed = new NdPoint(speed.getX() + AVOID_OBSTACLE_RULE_WEIGHT
+						/ displacement[0], speed.getY()
+						+ AVOID_OBSTACLE_RULE_WEIGHT / displacement[1]);
 			}
-			avgDistance /= obstacles.size();
-			double weight = 20 * avgDistance;
-			// turnTo(result);
-			result = new NdPoint(result.getX() / weight, result.getY() / weight);
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
 		}
 	}
 
@@ -342,13 +335,25 @@ public class Sheep {
 				if (!obstacle.equals(this)) {
 					if (distance(obstacle) <= obstacleDetectionRadius
 							+ obstacle.getObstacleRadius()
-							&& isInVisibleRange(obstacle)) {
+							&& isInVisibleRange(obstacle)
+							&& isOnTheRoad(obstacle)) {
 						obstacles.add(obstacle);
 					}
 				}
 			}
 		}
 		return obstacles;
+	}
+
+	private boolean isOnTheRoad(Obstacle obstacle) {
+		NdPoint obstacleLocation = space.getLocation(obstacle);
+		NdPoint thisLocation = space.getLocation(this);
+		double A = speed.getY() / speed.getX();
+		double B = -1;
+		double C = thisLocation.getY() - A * thisLocation.getX();
+		return Math.abs(A * obstacleLocation.getX() + B
+				* obstacleLocation.getY() + C)
+				/ Math.hypot(A, B) < obstacle.getObstacleRadius();
 	}
 
 	private boolean isInVisibleRange(Object object) {
