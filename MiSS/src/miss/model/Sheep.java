@@ -40,7 +40,7 @@ public class Sheep {
 
 	private static final double BOUNDARY_PUSH_FORCE = 0.1;
 
-	private static final double AVOID_OBSTACLE_RULE_WEIGHT = 0.3;
+	private static final double AVOID_OBSTACLE_RULE_WEIGHT = 0.2;
 
 	private ContinuousSpace<Object> space;
 
@@ -353,7 +353,7 @@ public class Sheep {
 		double C = thisLocation.getY() - A * thisLocation.getX();
 		return Math.abs(A * obstacleLocation.getX() + B
 				* obstacleLocation.getY() + C)
-				/ Math.hypot(A, B) < obstacle.getObstacleRadius();
+				/ Math.hypot(A, B) < obstacle.getObstacleRadius() + 0.2;
 	}
 
 	private boolean isInVisibleRange(Object object) {
