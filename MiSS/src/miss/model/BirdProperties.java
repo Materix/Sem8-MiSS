@@ -1,6 +1,6 @@
 package miss.model;
 
-public interface SheepProperties {
+public interface BirdProperties {
 	static final String MAX_ROTATION_SPEED = "MAX_ROTATION_SPEED";
 
 	static final String MIN_ROTATION_SPEED = "MIN_ROTATION_SPEED";

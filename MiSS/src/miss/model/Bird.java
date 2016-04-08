@@ -13,7 +13,7 @@ import repast.simphony.space.SpatialException;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
-public class Sheep {
+public class Bird {
 	private double cohesianRuleWeight;
 
 	private double separationRuleWeight;
@@ -46,7 +46,7 @@ public class Sheep {
 
 	private NdPoint speed;
 
-	public Sheep(ContinuousSpace<Object> space) {
+	public Bird(ContinuousSpace<Object> space) {
 		this.space = space;
 		speed = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
 				RandomHelper.nextDoubleFromTo(-1, 1));
@@ -58,78 +58,78 @@ public class Sheep {
 		ReLogoModel model = ReLogoModel.getInstance();
 
 		maxRotationSpeed = Double.parseDouble(model.getModelParam(
-				SheepProperties.MAX_ROTATION_SPEED).toString());
+				BirdProperties.MAX_ROTATION_SPEED).toString());
 		minRotationSpeed = Double.parseDouble(model.getModelParam(
-				SheepProperties.MIN_ROTATION_SPEED).toString());
+				BirdProperties.MIN_ROTATION_SPEED).toString());
 		minDistanceToBoundary = Double.parseDouble(model.getModelParam(
-				SheepProperties.MIN_DISTANCE_TO_BOUNDARY).toString());
+				BirdProperties.MIN_DISTANCE_TO_BOUNDARY).toString());
 		neighborhoodRadius = Double.parseDouble(model.getModelParam(
-				SheepProperties.NEIGHBORHOOD_RADIUS).toString());
+				BirdProperties.NEIGHBORHOOD_RADIUS).toString());
 		obstacleDetectionRadius = Double.parseDouble(model.getModelParam(
-				SheepProperties.OBSTACLE_DETECTION_RADIUS).toString());
+				BirdProperties.OBSTACLE_DETECTION_RADIUS).toString());
 		maxVelocity = Double.parseDouble(model.getModelParam(
-				SheepProperties.MAX_VELOCITY).toString());
+				BirdProperties.MAX_VELOCITY).toString());
 		minVelocity = Double.parseDouble(model.getModelParam(
-				SheepProperties.MIN_VELOCITY).toString());
+				BirdProperties.MIN_VELOCITY).toString());
 		minDistance = Double.parseDouble(model.getModelParam(
-				SheepProperties.MIN_DISTANCE).toString());
+				BirdProperties.MIN_DISTANCE).toString());
 		cohesianRuleWeight = Double.parseDouble(model.getModelParam(
-				SheepProperties.COHESIAN_RULE_WEIGHT).toString());
+				BirdProperties.COHESIAN_RULE_WEIGHT).toString());
 		separationRuleWeight = Double.parseDouble(model.getModelParam(
-				SheepProperties.SEPARATION_RULE_WEIGHT).toString());
+				BirdProperties.SEPARATION_RULE_WEIGHT).toString());
 		speedAlignmentRuleWeight = Double.parseDouble(model.getModelParam(
-				SheepProperties.SPEED_ALIGNMENT_RULE_WEIGHT).toString());
+				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT).toString());
 		angleOfSight = Double.parseDouble(model.getModelParam(
-				SheepProperties.ANGLE_OF_SIGHT).toString());
+				BirdProperties.ANGLE_OF_SIGHT).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
 
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.MAX_ROTATION_SPEED,
+				BirdProperties.MAX_ROTATION_SPEED,
 				event -> maxRotationSpeed = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.MIN_ROTATION_SPEED,
+				BirdProperties.MIN_ROTATION_SPEED,
 				event -> minRotationSpeed = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.MIN_DISTANCE_TO_BOUNDARY,
+				BirdProperties.MIN_DISTANCE_TO_BOUNDARY,
 				event -> minDistanceToBoundary = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.NEIGHBORHOOD_RADIUS,
+				BirdProperties.NEIGHBORHOOD_RADIUS,
 				event -> neighborhoodRadius = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.OBSTACLE_DETECTION_RADIUS,
+				BirdProperties.OBSTACLE_DETECTION_RADIUS,
 				event -> obstacleDetectionRadius = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.MAX_VELOCITY,
+				BirdProperties.MAX_VELOCITY,
 				event -> maxVelocity = Double.parseDouble(event.getNewValue()
 						.toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.MIN_VELOCITY,
+				BirdProperties.MIN_VELOCITY,
 				event -> minVelocity = Double.parseDouble(event.getNewValue()
 						.toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.MIN_DISTANCE,
+				BirdProperties.MIN_DISTANCE,
 				event -> minDistance = Double.parseDouble(event.getNewValue()
 						.toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.COHESIAN_RULE_WEIGHT,
+				BirdProperties.COHESIAN_RULE_WEIGHT,
 				event -> cohesianRuleWeight = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.SEPARATION_RULE_WEIGHT,
+				BirdProperties.SEPARATION_RULE_WEIGHT,
 				event -> separationRuleWeight = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
+				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
 				event -> speedAlignmentRuleWeight = Double.parseDouble(event
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
-				SheepProperties.ANGLE_OF_SIGHT,
+				BirdProperties.ANGLE_OF_SIGHT,
 				event -> angleOfSight = Double.parseDouble(event.getNewValue()
 						.toString()));
 
@@ -216,12 +216,12 @@ public class Sheep {
 	// nagle œrodek grupy umieszcze w œrodku planszy
 	@ScheduledMethod(start = 1, interval = 1)
 	public void cohesianRule() {
-		List<Sheep> neighborhood = getNeighborhood();
+		List<Bird> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
 			NdPoint result = new NdPoint(0, 0);
 
-			for (Sheep sheep : neighborhood) {
-				NdPoint otherPoint = space.getLocation(sheep);
+			for (Bird bird : neighborhood) {
+				NdPoint otherPoint = space.getLocation(bird);
 				result = new NdPoint(result.getX() + otherPoint.getX(),
 						result.getY() + otherPoint.getY());
 			}
@@ -243,13 +243,13 @@ public class Sheep {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void separationRule() {
-		List<Sheep> neighborhood = getNeighborhood();
+		List<Bird> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0 && separationRuleWeight != 0) {
 			NdPoint result = new NdPoint(0, 0);
-			for (Sheep sheep : neighborhood) {
-				if (distance(sheep) < minDistance) {
+			for (Bird bird : neighborhood) {
+				if (distance(bird) < minDistance) {
 					NdPoint myPoint = space.getLocation(this);
-					NdPoint otherPoint = space.getLocation(sheep);
+					NdPoint otherPoint = space.getLocation(bird);
 					double[] displacement = space.getDisplacement(myPoint,
 							otherPoint);
 					result = new NdPoint(result.getX() - displacement[0],
@@ -268,12 +268,12 @@ public class Sheep {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void speedAlignmentRule() {
-		List<Sheep> neighborhood = getNeighborhood();
+		List<Bird> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0 && speedAlignmentRuleWeight != 0) {
 			NdPoint result = new NdPoint(0, 0);
-			for (Sheep sheep : neighborhood) {
-				result = new NdPoint(result.getX() + sheep.speed.getX(),
-						result.getY() + sheep.speed.getY());
+			for (Bird bird : neighborhood) {
+				result = new NdPoint(result.getX() + bird.speed.getX(),
+						result.getY() + bird.speed.getY());
 			}
 			result = new NdPoint(result.getX() / neighborhood.size(),
 					result.getY() / neighborhood.size());
@@ -311,15 +311,15 @@ public class Sheep {
 		return space.getDistance(myPoint, otherPoint);
 	}
 
-	private List<Sheep> getNeighborhood() {
-		List<Sheep> circularNeighborhood = new ArrayList<Sheep>();
+	private List<Bird> getNeighborhood() {
+		List<Bird> circularNeighborhood = new ArrayList<Bird>();
 		for (Object object : space.getObjects()) {
-			if (object instanceof Sheep) {
-				Sheep sheep = (Sheep) object;
-				if (!sheep.equals(this)) {
-					if (distance(sheep) <= neighborhoodRadius
-							&& isInVisibleRange(sheep)) {
-						circularNeighborhood.add(sheep);
+			if (object instanceof Bird) {
+				Bird bird = (Bird) object;
+				if (!bird.equals(this)) {
+					if (distance(bird) <= neighborhoodRadius
+							&& isInVisibleRange(bird)) {
+						circularNeighborhood.add(bird);
 					}
 				}
 			}

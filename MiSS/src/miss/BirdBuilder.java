@@ -1,7 +1,7 @@
 package miss;
 
 import miss.model.Obstacle;
-import miss.model.Sheep;
+import miss.model.Bird;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
@@ -14,14 +14,14 @@ import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.StrictBorders;
 
-public class SheepBuilder implements ContextBuilder<Object> {
+public class BirdBuilder implements ContextBuilder<Object> {
 	private static final int BOUND_SIZE = 3;
 
 	@Override
 	public Context<Object> build(Context<Object> context) {
 		Parameters params = RunEnvironment.getInstance().getParameters();
 		int size = params.getInteger("size");
-		int sheepCount = params.getInteger("sheepCount");
+		int birdCount = params.getInteger("birdCount");
 		int obstacleCount = params.getInteger("obstacleCount");
 		int obstacleRadius = params.getInteger("obstacleRadius");
 
@@ -33,9 +33,9 @@ public class SheepBuilder implements ContextBuilder<Object> {
 				"space", context, new NotOnBoundRandomCartesianAdder<>(
 						BOUND_SIZE), new StrictBorders(), size, size);
 
-		for (int i = 0; i < sheepCount; i++) {
-			Sheep sheep = new Sheep(space);
-			context.add(sheep);
+		for (int i = 0; i < birdCount; i++) {
+			Bird bird = new Bird(space);
+			context.add(bird);
 		}
 
 		for (int i = 0; i < obstacleCount; i++) {

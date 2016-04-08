@@ -7,8 +7,8 @@
       <string>miss.visualization.ObstacleVisualization</string>
     </entry>
     <entry>
-      <string>miss.model.Sheep</string>
-      <string>miss.visualization.SheepVisualization</string>
+      <string>miss.model.Bird</string>
+      <string>miss.visualization.BirdVisualization</string>
     </entry>
   </styles>
   <editedStyles>
@@ -17,7 +17,7 @@
       <null/>
     </entry>
     <entry>
-      <string>miss.model.Sheep</string>
+      <string>miss.model.Bird</string>
       <null/>
     </entry>
   </editedStyles>
@@ -42,7 +42,7 @@
       <int>0</int>
     </entry>
     <entry>
-      <string>miss.model.Sheep</string>
+      <string>miss.model.Bird</string>
       <int>1</int>
     </entry>
   </layerOrder>

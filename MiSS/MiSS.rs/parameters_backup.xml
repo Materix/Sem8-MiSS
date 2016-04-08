@@ -31,7 +31,7 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="sheepCount" displayName="Sheep count" type="int" 
+				<parameter name="birdCount" displayName="Bird count" type="int" 
 						defaultValue="25" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"

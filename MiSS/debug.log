@@ -919,7 +919,7 @@ INFO  [SwingWorker-pool-2-thread-1] 2016-03-13 13:28:57,187 repast.simphony.batc
 INFO  [SwingWorker-pool-2-thread-1] 2016-03-13 13:28:57,187 repast.simphony.batch.ssh.SessionsDriver - Finished. Elapsed Time: 1,0410
 ERROR [AWT-EventQueue-0] 2016-03-17 19:45:23,674 repast.simphony.ui.RSApplication - Error while initializing simulation
 java.lang.NullPointerException
-	at miss.SheepBuilder.build(SheepBuilder.java:42)
+	at miss.BirdBuilder.build(BirdBuilder.java:42)
 	at repast.simphony.dataLoader.engine.ClassNameContextBuilder.build(ClassNameContextBuilder.java:41)
 	at repast.simphony.dataLoader.engine.DataLoaderControllerAction.runInitialize(DataLoaderControllerAction.java:48)
 	at repast.simphony.engine.controller.DefaultController$2.visit(DefaultController.java:214)
@@ -971,7 +971,7 @@ java.lang.NullPointerException
 	at java.awt.EventDispatchThread.run(Unknown Source)
 ERROR [AWT-EventQueue-0] 2016-03-17 19:45:28,522 repast.simphony.ui.RSApplication - Error while initializing simulation
 java.lang.NullPointerException
-	at miss.SheepBuilder.build(SheepBuilder.java:42)
+	at miss.BirdBuilder.build(BirdBuilder.java:42)
 	at repast.simphony.dataLoader.engine.ClassNameContextBuilder.build(ClassNameContextBuilder.java:41)
 	at repast.simphony.dataLoader.engine.DataLoaderControllerAction.runInitialize(DataLoaderControllerAction.java:48)
 	at repast.simphony.engine.controller.DefaultController$2.visit(DefaultController.java:214)
@@ -1179,12 +1179,12 @@ java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
 	at repast.simphony.ui.GUIScheduleRunner$ScheduleLoopRunnable.run(GUIScheduleRunner.java:52)
 	at java.lang.Thread.run(Unknown Source)
 Caused by: java.lang.reflect.InvocationTargetException
-	at miss.model.Sheep$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
+	at miss.model.Bird$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
 	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
 	... 7 more
 Caused by: java.lang.ClassCastException: java.lang.Integer cannot be cast to java.lang.Double
-	at miss.model.Sheep.setup(Sheep.java:73)
+	at miss.model.Bird.setup(Bird.java:73)
 	... 10 more
 FATAL [Thread-8] 2016-03-29 13:26:38,684 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
 Current tick (0.0)
@@ -1198,12 +1198,12 @@ java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
 	at repast.simphony.ui.GUIScheduleRunner$ScheduleLoopRunnable.run(GUIScheduleRunner.java:52)
 	at java.lang.Thread.run(Unknown Source)
 Caused by: java.lang.reflect.InvocationTargetException
-	at miss.model.Sheep$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
+	at miss.model.Bird$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
 	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
 	... 7 more
 Caused by: java.lang.ClassCastException: java.math.BigDecimal cannot be cast to java.lang.Double
-	at miss.model.Sheep.setup(Sheep.java:88)
+	at miss.model.Bird.setup(Bird.java:88)
 	... 10 more
 FATAL [Thread-7] 2016-03-29 23:59:23,992 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
 Current tick (14.0)
@@ -1217,7 +1217,7 @@ java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
 	at repast.simphony.ui.GUIScheduleRunner$ScheduleLoopRunnable.run(GUIScheduleRunner.java:52)
 	at java.lang.Thread.run(Unknown Source)
 Caused by: java.lang.reflect.InvocationTargetException
-	at miss.model.Sheep$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
+	at miss.model.Bird$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
 	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
 	... 7 more
@@ -1226,7 +1226,7 @@ Caused by: repast.simphony.space.SpatialException: Target location 50.1921926057
 	at repast.simphony.space.continuous.AbstractPointTranslator.transform(AbstractPointTranslator.java:39)
 	at repast.simphony.space.continuous.AbstractContinuousSpace.doMove(AbstractContinuousSpace.java:144)
 	at repast.simphony.space.continuous.AbstractContinuousSpace.moveTo(AbstractContinuousSpace.java:121)
-	at miss.model.Sheep.forward(Sheep.java:139)
+	at miss.model.Bird.forward(Bird.java:139)
 	... 10 more
 FATAL [Thread-7] 2016-03-30 00:01:15,584 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
 Current tick (253.0)
@@ -1240,7 +1240,7 @@ java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
 	at repast.simphony.ui.GUIScheduleRunner$ScheduleLoopRunnable.run(GUIScheduleRunner.java:52)
 	at java.lang.Thread.run(Unknown Source)
 Caused by: java.lang.reflect.InvocationTargetException
-	at miss.model.Sheep$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
+	at miss.model.Bird$$FastClassByCGLIB$$bfafd444.invoke(<generated>)
 	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
 	... 7 more
@@ -1249,5 +1249,5 @@ Caused by: repast.simphony.space.SpatialException: Target location 50.0581800098
 	at repast.simphony.space.continuous.AbstractPointTranslator.transform(AbstractPointTranslator.java:39)
 	at repast.simphony.space.continuous.AbstractContinuousSpace.doMove(AbstractContinuousSpace.java:144)
 	at repast.simphony.space.continuous.AbstractContinuousSpace.moveTo(AbstractContinuousSpace.java:121)
-	at miss.model.Sheep.forward(Sheep.java:139)
+	at miss.model.Bird.forward(Bird.java:139)
 	... 10 more
