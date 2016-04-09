@@ -1,7 +1,7 @@
 package miss;
 
-import miss.model.Obstacle;
 import miss.model.Bird;
+import miss.model.Obstacle;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
@@ -12,7 +12,7 @@ import repast.simphony.random.RandomHelper;
 import repast.simphony.space.Dimensions;
 import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
-import repast.simphony.space.continuous.StrictBorders;
+import repast.simphony.space.continuous.StickyBorders;
 
 public class BirdBuilder implements ContextBuilder<Object> {
 	private static final int BOUND_SIZE = 3;
@@ -31,7 +31,7 @@ public class BirdBuilder implements ContextBuilder<Object> {
 				.createContinuousSpaceFactory(null);
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace(
 				"space", context, new NotOnBoundRandomCartesianAdder<>(
-						BOUND_SIZE), new StrictBorders(), size, size);
+						BOUND_SIZE), new StickyBorders(), size, size);
 
 		for (int i = 0; i < birdCount; i++) {
 			Bird bird = new Bird(space);

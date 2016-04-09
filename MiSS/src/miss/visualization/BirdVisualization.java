@@ -60,12 +60,11 @@ public class BirdVisualization implements StyleOGL2D<Bird> {
 
 	@Override
 	public int getBorderSize(Bird object) {
-		return 0;
+		return 1;
 	}
 
 	@Override
 	public float getRotation(Bird bird) {
-		// return 90;
 		return 90 - ((float) Math.toDegrees(bird.getRotation()));
 	}
 

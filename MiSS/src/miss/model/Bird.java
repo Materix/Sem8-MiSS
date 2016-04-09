@@ -6,22 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.random.RandomHelper;
 import repast.simphony.relogo.ReLogoModel;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.util.SimUtilities;
 
 public class Bird extends Animal {
 	private double cohesianRuleWeight;
 
 	private double separationRuleWeight;
 
-	private double speedAlignmentRuleWeight;
+	private double velocityAlignmentRuleWeight;
 
 	private double neighborhoodRadius;
 
 	private double minDistance;
-
-	// private NdPoint speed;
 
 	public Bird(ContinuousSpace<Object> space) {
 		super(space);
@@ -41,7 +41,7 @@ public class Bird extends Animal {
 				BirdProperties.COHESIAN_RULE_WEIGHT).toString());
 		separationRuleWeight = Double.parseDouble(model.getModelParam(
 				BirdProperties.SEPARATION_RULE_WEIGHT).toString());
-		speedAlignmentRuleWeight = Double.parseDouble(model.getModelParam(
+		velocityAlignmentRuleWeight = Double.parseDouble(model.getModelParam(
 				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
@@ -64,84 +64,120 @@ public class Bird extends Animal {
 						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
 				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
-				event -> speedAlignmentRuleWeight = Double.parseDouble(event
+				event -> velocityAlignmentRuleWeight = Double.parseDouble(event
 						.getNewValue().toString()));
 	}
 
-	// cohesion
-	// TODO tu jest problem z liczeniem œredniej. Jak przekroczy granicê to siê
-	// nagle œrodek grupy umieszcze w œrodku planszy
 	@ScheduledMethod(start = 1, interval = 1)
 	public void cohesianRule() {
 		List<Bird> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
-			NdPoint result = new NdPoint(0, 0);
-
+			double averageDistance = neighborhood.stream()
+					.mapToDouble(this::distance).average().getAsDouble();
 			for (Bird bird : neighborhood) {
-				NdPoint otherPoint = space.getLocation(bird);
-				result = new NdPoint(result.getX() + otherPoint.getX(),
-						result.getY() + otherPoint.getY());
+				NdPoint thisLocation = space.getLocation(this);
+				NdPoint birdLocation = space.getLocation(bird);
+				velocity = new NdPoint(
+						velocity.getX()
+								+ cohesianRuleWeight
+								* (((birdLocation.getX() - thisLocation.getX()) * (distance(bird) - averageDistance)) / (distance(bird)))
+								/ neighborhood.size(),
+						velocity.getY()
+								+ cohesianRuleWeight
+								* (((birdLocation.getY() - thisLocation.getY()) * (distance(bird) - averageDistance)) / (distance(bird)))
+								/ neighborhood.size());
 			}
-			result = new NdPoint(result.getX() / neighborhood.size(),
-					result.getY() / neighborhood.size());
-			// turnTo(result, 0.1);
-			NdPoint myPoint = space.getLocation(this);
-			double[] displacement = space.getDisplacement(myPoint, result);
-
-			result = new NdPoint(displacement[0] / cohesianRuleWeight,
-					displacement[1] / cohesianRuleWeight);
-
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
+			// NdPoint centerOfFlock = new NdPoint(0, 0);
+			// for (Bird bird : neighborhood) {
+			// NdPoint birdLocation = space.getLocation(bird);
+			// centerOfFlock = new NdPoint(centerOfFlock.getX()
+			// + birdLocation.getX(), centerOfFlock.getY()
+			// + birdLocation.getY());
+			// }
+			// centerOfFlock = new NdPoint(centerOfFlock.getX()
+			// / neighborhood.size(), centerOfFlock.getY()
+			// / neighborhood.size());
+			// NdPoint myPoint = space.getLocation(this);
+			// double[] displacement = space.getDisplacement(myPoint,
+			// centerOfFlock);
+			//
+			// centerOfFlock = new NdPoint(displacement[0] * cohesianRuleWeight,
+			// displacement[1] * cohesianRuleWeight);
+			//
+			// velocity = new NdPoint(velocity.getX() + centerOfFlock.getX(),
+			// velocity.getY() + centerOfFlock.getY());
 		}
-
-		forward();
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void separationRule() {
 		List<Bird> neighborhood = getNeighborhood();
 		if (neighborhood.size() > 0 && separationRuleWeight != 0) {
-			NdPoint result = new NdPoint(0, 0);
 			for (Bird bird : neighborhood) {
 				if (distance(bird) < minDistance) {
-					NdPoint myPoint = space.getLocation(this);
-					NdPoint otherPoint = space.getLocation(bird);
-					double[] displacement = space.getDisplacement(myPoint,
-							otherPoint);
-					result = new NdPoint(result.getX() - displacement[0],
-							result.getY() - displacement[1]);
+					NdPoint thisLocation = space.getLocation(this);
+					NdPoint birdLocation = space.getLocation(bird);
+					velocity = new NdPoint(
+							velocity.getX()
+									- separationRuleWeight
+									* (((minDistance * (birdLocation.getX() - thisLocation.getX())) / (distance(bird))) - (birdLocation.getX() - thisLocation.getX()))
+									/ neighborhood.size(),
+							velocity.getY()
+									- separationRuleWeight
+									* (((minDistance * (birdLocation.getY() - thisLocation
+											.getY())) / (distance(bird))) - (birdLocation
+											.getY() - thisLocation.getY()))
+									/ neighborhood.size());
 				}
 			}
-			// turnTo(result);
-			result = new NdPoint(result.getX() / separationRuleWeight,
-					result.getY() / separationRuleWeight);
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
+			// NdPoint result = new NdPoint(0, 0);
+			// for (Bird bird : neighborhood) {
+			// if (distance(bird) < minDistance) {
+			// NdPoint myPoint = space.getLocation(this);
+			// NdPoint otherPoint = space.getLocation(bird);
+			// double[] displacement = space.getDisplacement(myPoint,
+			// otherPoint);
+			// result = new NdPoint(result.getX() - displacement[0],
+			// result.getY() - displacement[1]);
+			// }
+			// }
+			// // turnTo(result, 0);
+			// result = new NdPoint(result.getX() / separationRuleWeight,
+			// result.getY() / separationRuleWeight);
+			// speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+			// + result.getY());
 		}
-
-		forward();
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
-	public void speedAlignmentRule() {
+	public void velocityAlignmentRule() {
 		List<Bird> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0 && speedAlignmentRuleWeight != 0) {
-			NdPoint result = new NdPoint(0, 0);
-			for (Bird bird : neighborhood) {
-				result = new NdPoint(result.getX() + bird.speed.getX(),
-						result.getY() + bird.speed.getY());
-			}
-			result = new NdPoint(result.getX() / neighborhood.size(),
-					result.getY() / neighborhood.size());
-			result = new NdPoint((result.getX() - speed.getX())
-					/ speedAlignmentRuleWeight, (result.getY() - speed.getY())
-					/ speedAlignmentRuleWeight);
-			speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-					+ result.getY());
+		if (neighborhood.size() > 0 && velocityAlignmentRuleWeight != 0) {
+			NdPoint averageVelocity = new NdPoint(neighborhood.stream()
+					.mapToDouble(bird -> bird.getVelocity().getX()).average()
+					.getAsDouble(), neighborhood.stream()
+					.mapToDouble(bird -> bird.getVelocity().getY()).average()
+					.getAsDouble());
+			velocity = new NdPoint(
+					velocity.getX()
+							+ (velocityAlignmentRuleWeight * (averageVelocity
+									.getX() - velocity.getX())),
+					velocity.getY()
+							+ (velocityAlignmentRuleWeight * (averageVelocity
+									.getY() - velocity.getY())));
+			// NdPoint result = new NdPoint(0, 0);
+			// for (Bird bird : neighborhood) {
+			// result = new NdPoint(result.getX() + bird.speed.getX(),
+			// result.getY() + bird.speed.getY());
+			// }
+			// result = new NdPoint(result.getX() / neighborhood.size(),
+			// result.getY() / neighborhood.size());
+			// result = new NdPoint((result.getX() - speed.getX())
+			// / speedAlignmentRuleWeight, (result.getY() - speed.getY())
+			// / speedAlignmentRuleWeight);
+			// speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+			// + result.getY());
 		}
-
-		forward();
 	}
 
 	private List<Bird> getNeighborhood() {
@@ -157,6 +193,7 @@ public class Bird extends Animal {
 				}
 			}
 		}
+		SimUtilities.shuffle(circularNeighborhood, RandomHelper.getUniform());
 		return circularNeighborhood;
 	}
 }

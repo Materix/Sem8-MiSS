@@ -14,19 +14,14 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
 public abstract class Animal {
-	// private double cohesianRuleWeight;
-	//
-	// private double separationRuleWeight;
-	//
-	// private double speedAlignmentRuleWeight;
-	//
-	// private double maxRotationSpeed;
-	//
-	// private double minRotationSpeed;
+
+	private double avoidObstacleRuleWeight;
+
+	private double perturbationRuleWeight;
+
+	private double boudaryPushForce;
 
 	private double minDistanceToBoundary;
-
-	// private double neighborhoodRadius;
 
 	private double obstacleDetectionRadius;
 
@@ -36,17 +31,13 @@ public abstract class Animal {
 
 	private double angleOfSight;
 
-	private static final double BOUNDARY_PUSH_FORCE = 0.1;
-
-	private static final double AVOID_OBSTACLE_RULE_WEIGHT = 0.2;
-
 	protected ContinuousSpace<Object> space;
 
-	protected NdPoint speed;
+	protected NdPoint velocity;
 
 	public Animal(ContinuousSpace<Object> space) {
 		this.space = space;
-		speed = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
+		velocity = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
 				RandomHelper.nextDoubleFromTo(-1, 1));
 	}
 
@@ -65,6 +56,12 @@ public abstract class Animal {
 				AnimalProperties.MIN_VELOCITY).toString());
 		angleOfSight = Double.parseDouble(model.getModelParam(
 				AnimalProperties.ANGLE_OF_SIGHT).toString());
+		avoidObstacleRuleWeight = Double.parseDouble(model.getModelParam(
+				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT).toString());
+		perturbationRuleWeight = Double.parseDouble(model.getModelParam(
+				AnimalProperties.PERTURBATION_RULE_WEIGHT).toString());
+		boudaryPushForce = Double.parseDouble(model.getModelParam(
+				AnimalProperties.BOUNDARY_PUSH_FORCE).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
 
@@ -88,17 +85,30 @@ public abstract class Animal {
 				AnimalProperties.ANGLE_OF_SIGHT,
 				event -> angleOfSight = Double.parseDouble(event.getNewValue()
 						.toString()));
+		propertiesMap.addPropertyChangeListener(
+				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT,
+				event -> avoidObstacleRuleWeight = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				AnimalProperties.PERTURBATION_RULE_WEIGHT,
+				event -> perturbationRuleWeight = Double.parseDouble(event
+						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				AnimalProperties.BOUNDARY_PUSH_FORCE,
+				event -> boudaryPushForce = Double.parseDouble(event
+						.getNewValue().toString()));
 
 	}
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	public void forward() {
-		limitSpeed();
 		avoidBoundary();
 		avoidObstacles();
+		perturbation();
+		limitVelocity();
 		NdPoint pt = space.getLocation(this);
-		double moveX = pt.getX() + speed.getX();
-		double moveY = pt.getY() + speed.getY();
+		double moveX = pt.getX() + velocity.getX();
+		double moveY = pt.getY() + velocity.getY();
 		try {
 			space.moveTo(this, moveX, moveY);
 		} catch (SpatialException e) {
@@ -106,52 +116,49 @@ public abstract class Animal {
 		}
 	}
 
-	// speed limit
-	private void limitSpeed() {
-		while (getVelocity() > maxVelocity) {
-			speed = new NdPoint(speed.getX() * 0.8, speed.getY() * 0.8);
+	private void perturbation() {
+		velocity = new NdPoint(perturbationRuleWeight * maxVelocity
+				* RandomHelper.nextDoubleFromTo(-0.5, 0.5) + velocity.getX(),
+				perturbationRuleWeight * maxVelocity
+						* RandomHelper.nextDoubleFromTo(-0.5, 0.5)
+						+ velocity.getY());
+	}
+
+	private void limitVelocity() {
+		while (getSpeed() > maxVelocity) {
+			velocity = new NdPoint(velocity.getX() * 0.8, velocity.getY() * 0.8);
 		}
-		while (getVelocity() < minVelocity) {
-			speed = new NdPoint(speed.getX() * 1.3, speed.getY() * 1.3);
+		while (getSpeed() < minVelocity) {
+			velocity = new NdPoint(velocity.getX() * 1.3, velocity.getY() * 1.3);
 		}
 	}
 
-	// @ScheduledMethod(start = 1, interval = 1, priority =
-	// ScheduleParameters.FIRST_PRIORITY)
 	private void avoidBoundary() {
 		NdPoint myPoint = space.getLocation(this);
 		NdPoint result = new NdPoint(0, 0);
 		if (myPoint.getX() < minDistanceToBoundary
 				&& (getRotation() < -Math.PI / 2 || getRotation() > Math.PI / 2)) {
-			// <-
-			result = new NdPoint(result.getX() + BOUNDARY_PUSH_FORCE,
+			result = new NdPoint(result.getX() + boudaryPushForce,
 					result.getY());
 		} else if (myPoint.getX() > space.getDimensions().getDimension(0)
 				- minDistanceToBoundary
 				&& (getRotation() > -Math.PI / 2 || getRotation() < Math.PI / 2)) {
-			// ->
-			result = new NdPoint(result.getX() - BOUNDARY_PUSH_FORCE,
+			result = new NdPoint(result.getX() - boudaryPushForce,
 					result.getY());
 		}
 		if (myPoint.getY() < minDistanceToBoundary && getRotation() < 0) {
-			// |
-			// v
 			result = new NdPoint(result.getX(), result.getY()
-					+ BOUNDARY_PUSH_FORCE);
+					+ boudaryPushForce);
 		} else if (myPoint.getY() > space.getDimensions().getDimension(1)
 				- minDistanceToBoundary
 				&& getRotation() > 0) {
-			// ^
-			// |
 			result = new NdPoint(result.getX(), result.getY()
-					- BOUNDARY_PUSH_FORCE);
+					- boudaryPushForce);
 		}
-		speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
+		velocity = new NdPoint(velocity.getX() + result.getX(), velocity.getY()
 				+ result.getY());
 	}
 
-	// @ScheduledMethod(start = 1, interval = 1, priority =
-	// ScheduleParameters.FIRST_PRIORITY)
 	private void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
 		if (obstacles.size() > 0) {
@@ -160,15 +167,16 @@ public abstract class Animal {
 				NdPoint obstacleLocation = space.getLocation(obstacle);
 				double[] displacement = space.getDisplacement(obstacleLocation,
 						thisLocation);
-				speed = new NdPoint(speed.getX() + AVOID_OBSTACLE_RULE_WEIGHT
-						/ displacement[0], speed.getY()
-						+ AVOID_OBSTACLE_RULE_WEIGHT / displacement[1]);
+				velocity = new NdPoint(velocity.getX()
+						+ avoidObstacleRuleWeight / displacement[0],
+						velocity.getY() + avoidObstacleRuleWeight
+								/ displacement[1]);
 			}
 		}
 	}
 
-	protected double getVelocity() {
-		return Math.hypot(speed.getX(), speed.getY());
+	protected double getSpeed() {
+		return Math.hypot(velocity.getX(), velocity.getY());
 	}
 
 	protected double distance(Object object) {
@@ -198,7 +206,7 @@ public abstract class Animal {
 	private boolean isOnTheRoad(Obstacle obstacle) {
 		NdPoint obstacleLocation = space.getLocation(obstacle);
 		NdPoint thisLocation = space.getLocation(this);
-		double A = speed.getY() / speed.getX();
+		double A = velocity.getY() / velocity.getX();
 		double B = -1;
 		double C = thisLocation.getY() - A * thisLocation.getX();
 		return Math.abs(A * obstacleLocation.getX() + B
@@ -214,11 +222,11 @@ public abstract class Animal {
 		return Math.abs(radian - getRotation()) < Math.toRadians(angleOfSight);
 	}
 
-	public NdPoint getSpeed() {
-		return speed;
+	public NdPoint getVelocity() {
+		return velocity;
 	}
 
 	public double getRotation() {
-		return Math.atan2(speed.getY(), speed.getX());
+		return Math.atan2(velocity.getY(), velocity.getX());
 	}
 }

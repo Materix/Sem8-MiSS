@@ -9,32 +9,33 @@ public class UserGlobalsAndPanelFactory extends
 
 	@Override
 	public void addGlobalsAndPanelComponents() {
-
-		addSliderWL(AnimalProperties.MAX_ROTATION_SPEED,
-				AnimalProperties.MAX_ROTATION_SPEED, 0.1, 0.1, 1d, 0.5);
-		addSliderWL(AnimalProperties.MIN_ROTATION_SPEED,
-				AnimalProperties.MIN_ROTATION_SPEED, 0.1, 0.1, 1d, 0.2);
+		addSliderWL(AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT,
+				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT, 0, 0.01, 1, 0.1);
+		addSliderWL(AnimalProperties.PERTURBATION_RULE_WEIGHT,
+				AnimalProperties.PERTURBATION_RULE_WEIGHT, 0, 0.01, 1, 0.2);
+		addSliderWL(AnimalProperties.BOUNDARY_PUSH_FORCE,
+				AnimalProperties.BOUNDARY_PUSH_FORCE, 0, 0.01, 1, 0.1);
 		addSliderWL(AnimalProperties.MIN_DISTANCE_TO_BOUNDARY,
-				AnimalProperties.MIN_DISTANCE_TO_BOUNDARY, 0d, 0.5, 5d, 1d);
+				AnimalProperties.MIN_DISTANCE_TO_BOUNDARY, 0d, 0.1, 5d, 2.5d);
 		addSliderWL(AnimalProperties.OBSTACLE_DETECTION_RADIUS,
-				AnimalProperties.OBSTACLE_DETECTION_RADIUS, 0, 0.5, 10d, 1d);
+				AnimalProperties.OBSTACLE_DETECTION_RADIUS, 0, 0.1, 10d, 2.5d);
 		addSliderWL(AnimalProperties.MAX_VELOCITY,
-				AnimalProperties.MAX_VELOCITY, 0d, 0.01, 0.5d, 0.2);
+				AnimalProperties.MAX_VELOCITY, 0d, 0.01, 1d, 0.5);
 		addSliderWL(AnimalProperties.MIN_VELOCITY,
-				AnimalProperties.MIN_VELOCITY, 0d, 0.01, 0.5d, 0.05);
+				AnimalProperties.MIN_VELOCITY, 0d, 0.01, 1d, 0.25);
 		addSliderWL(AnimalProperties.ANGLE_OF_SIGHT,
-				AnimalProperties.ANGLE_OF_SIGHT, 0d, 1, 360d, 120);
+				AnimalProperties.ANGLE_OF_SIGHT, 0d, 1, 360d, 160);
 
 		addSliderWL(BirdProperties.COHESIAN_RULE_WEIGHT,
-				BirdProperties.COHESIAN_RULE_WEIGHT, 0d, 0.5, 50, 20);
+				BirdProperties.COHESIAN_RULE_WEIGHT, 0d, 0.01, 1, 0.15);
 		addSliderWL(BirdProperties.SEPARATION_RULE_WEIGHT,
-				BirdProperties.SEPARATION_RULE_WEIGHT, 0d, 0.5, 50, 15);
+				BirdProperties.SEPARATION_RULE_WEIGHT, 0d, 0.01, 1, 0.1);
 		addSliderWL(BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
-				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT, 0d, 0.5, 50, 8);
+				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT, 0d, 0.01, 1, 0.15);
 		addSliderWL(BirdProperties.MIN_DISTANCE, BirdProperties.MIN_DISTANCE,
-				0d, 0.1, 3d, 1.5);
+				0d, 0.1, 3d, 1);
 		addSliderWL(BirdProperties.NEIGHBORHOOD_RADIUS,
-				BirdProperties.NEIGHBORHOOD_RADIUS, 1d, 0.5, 10d, 3d);
+				BirdProperties.NEIGHBORHOOD_RADIUS, 1, 0.1, 10, 4);
 		// addMonitor("currentDensity", 1);
 	}
 }
