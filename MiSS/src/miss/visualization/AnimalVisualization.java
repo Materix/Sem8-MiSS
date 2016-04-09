@@ -7,7 +7,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 
+import miss.model.Animal;
 import miss.model.Bird;
+import miss.model.Predator;
 import repast.simphony.visualization.gui.styleBuilder.IconFactory2D;
 import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.NamedShapeCreator;
@@ -15,9 +17,9 @@ import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 
-public class BirdVisualization implements StyleOGL2D<Bird> {
+public class AnimalVisualization implements StyleOGL2D<Animal> {
 
-	private static final String SHAPE_ID = "BirdVisualizationShapeId";
+	private static final String SHAPE_ID = "AnimalVisualizationShapeId";
 
 	private ShapeFactory2D shapeFactory;
 
@@ -41,7 +43,7 @@ public class BirdVisualization implements StyleOGL2D<Bird> {
 	}
 
 	@Override
-	public VSpatial getVSpatial(Bird object, VSpatial spatial) {
+	public VSpatial getVSpatial(Animal object, VSpatial spatial) {
 		if (spatial == null) {
 			spatial = shapeFactory.getNamedSpatial(SHAPE_ID);
 		}
@@ -49,57 +51,62 @@ public class BirdVisualization implements StyleOGL2D<Bird> {
 	}
 
 	@Override
-	public Color getColor(Bird object) {
-		return Color.BLUE;
+	public Color getColor(Animal animal) {
+		if (animal instanceof Bird) {
+			return Color.BLUE;
+		} else if (animal instanceof Predator) {
+			return Color.RED;
+		}
+		return Color.WHITE;
 	}
 
 	@Override
-	public Color getBorderColor(Bird object) {
+	public Color getBorderColor(Animal object) {
 		return Color.BLACK;
 	}
 
 	@Override
-	public int getBorderSize(Bird object) {
+	public int getBorderSize(Animal object) {
 		return 1;
 	}
 
 	@Override
-	public float getRotation(Bird bird) {
-		return 90 - ((float) Math.toDegrees(bird.getRotation()));
+	public float getRotation(Animal animal) {
+		return 90 - ((float) Math.toDegrees(animal.getRotation()));
 	}
 
 	@Override
-	public float getScale(Bird object) {
+	public float getScale(Animal object) {
 		return 1;
 	}
 
 	@Override
-	public String getLabel(Bird object) {
+	public String getLabel(Animal object) {
 		return null;
 	}
 
 	@Override
-	public Font getLabelFont(Bird object) {
+	public Font getLabelFont(Animal object) {
 		return null;
 	}
 
 	@Override
-	public float getLabelXOffset(Bird object) {
+	public float getLabelXOffset(Animal object) {
 		return 0;
 	}
 
 	@Override
-	public float getLabelYOffset(Bird object) {
+	public float getLabelYOffset(Animal object) {
 		return 0;
 	}
 
 	@Override
-	public Position getLabelPosition(Bird object) {
+	public Position getLabelPosition(Animal object) {
 		return Position.NORTH;
 	}
 
 	@Override
-	public Color getLabelColor(Bird object) {
+	public Color getLabelColor(Animal object) {
 		return Color.BLACK;
 	}
 }

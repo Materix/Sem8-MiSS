@@ -29,7 +29,7 @@ public class ObstacleVisualization implements StyleOGL2D<Obstacle> {
 
 	@Override
 	public Color getColor(Obstacle object) {
-		return Color.RED;
+		return Color.GRAY;
 	}
 
 	@Override

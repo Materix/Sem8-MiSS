@@ -2,6 +2,7 @@ package miss;
 
 import miss.model.Bird;
 import miss.model.Obstacle;
+import miss.model.Predator;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
@@ -12,9 +13,9 @@ import repast.simphony.random.RandomHelper;
 import repast.simphony.space.Dimensions;
 import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
-import repast.simphony.space.continuous.StickyBorders;
+import repast.simphony.space.continuous.WrapAroundBorders;
 
-public class BirdBuilder implements ContextBuilder<Object> {
+public class MissContextBuilder implements ContextBuilder<Object> {
 	private static final int BOUND_SIZE = 3;
 
 	@Override
@@ -24,6 +25,7 @@ public class BirdBuilder implements ContextBuilder<Object> {
 		int birdCount = params.getInteger("birdCount");
 		int obstacleCount = params.getInteger("obstacleCount");
 		int obstacleRadius = params.getInteger("obstacleRadius");
+		int predatorCount = params.getInteger("predatorCount");
 
 		context.setId("MiSS");
 
@@ -31,16 +33,18 @@ public class BirdBuilder implements ContextBuilder<Object> {
 				.createContinuousSpaceFactory(null);
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace(
 				"space", context, new NotOnBoundRandomCartesianAdder<>(
-						BOUND_SIZE), new StickyBorders(), size, size);
+						BOUND_SIZE), new WrapAroundBorders(), size, size);
 
 		for (int i = 0; i < birdCount; i++) {
-			Bird bird = new Bird(space);
-			context.add(bird);
+			context.add(new Bird(space));
 		}
 
 		for (int i = 0; i < obstacleCount; i++) {
-			Obstacle obstacle = new Obstacle(obstacleRadius);
-			context.add(obstacle);
+			context.add(new Obstacle(obstacleRadius));
+		}
+
+		for (int i = 0; i < predatorCount; i++) {
+			context.add(new Predator(space));
 		}
 
 		return context;

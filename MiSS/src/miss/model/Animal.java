@@ -102,7 +102,7 @@ public abstract class Animal {
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	public void forward() {
-		avoidBoundary();
+		// avoidBoundary();
 		avoidObstacles();
 		perturbation();
 		limitVelocity();

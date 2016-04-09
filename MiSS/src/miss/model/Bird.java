@@ -23,6 +23,8 @@ public class Bird extends Animal {
 
 	private double minDistance;
 
+	private double predatorDetectRadius;
+
 	public Bird(ContinuousSpace<Object> space) {
 		super(space);
 	}
@@ -43,6 +45,8 @@ public class Bird extends Animal {
 				BirdProperties.SEPARATION_RULE_WEIGHT).toString());
 		velocityAlignmentRuleWeight = Double.parseDouble(model.getModelParam(
 				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT).toString());
+		predatorDetectRadius = Double.parseDouble(model.getModelParam(
+				BirdProperties.PREDATOR_DETECT_RADIUS).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
 
@@ -66,6 +70,16 @@ public class Bird extends Animal {
 				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
 				event -> velocityAlignmentRuleWeight = Double.parseDouble(event
 						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				BirdProperties.PREDATOR_DETECT_RADIUS,
+				event -> predatorDetectRadius = Double.parseDouble(event
+						.getNewValue().toString()));
+	}
+
+	@Override
+	public void forward() {
+		avoidPredators();
+		super.forward();
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
@@ -178,6 +192,34 @@ public class Bird extends Animal {
 			// speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
 			// + result.getY());
 		}
+	}
+
+	public void avoidPredators() {
+		List<Predator> predators = getPredators();
+		if (predators.size() > 0) {
+			for (Predator predator : predators) {
+				NdPoint thisLocation = space.getLocation(this);
+				NdPoint predatorLocation = space.getLocation(predator);
+				double[] displacement = space.getDisplacement(predatorLocation,
+						thisLocation);
+				velocity = new NdPoint(velocity.getX() + 0.5 / displacement[0],
+						velocity.getY() + 0.5 / displacement[1]);
+			}
+		}
+	}
+
+	private List<Predator> getPredators() {
+		List<Predator> circularNeighborhood = new ArrayList<Predator>();
+		for (Object object : space.getObjects()) {
+			if (object instanceof Predator) {
+				Predator predator = (Predator) object;
+				if (distance(predator) <= predatorDetectRadius) {
+					circularNeighborhood.add(predator);
+				}
+			}
+		}
+		SimUtilities.shuffle(circularNeighborhood, RandomHelper.getUniform());
+		return circularNeighborhood;
 	}
 
 	private List<Bird> getNeighborhood() {

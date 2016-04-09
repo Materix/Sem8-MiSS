@@ -36,6 +36,8 @@ public class UserGlobalsAndPanelFactory extends
 				0d, 0.1, 3d, 1);
 		addSliderWL(BirdProperties.NEIGHBORHOOD_RADIUS,
 				BirdProperties.NEIGHBORHOOD_RADIUS, 1, 0.1, 10, 4);
+		addSliderWL(BirdProperties.PREDATOR_DETECT_RADIUS,
+				BirdProperties.PREDATOR_DETECT_RADIUS, 1, 0.1, 10, 4);
 		// addMonitor("currentDensity", 1);
 	}
 }
