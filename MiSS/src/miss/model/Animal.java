@@ -194,7 +194,9 @@ public abstract class Animal {
 					if (distance(obstacle) <= obstacleDetectionRadius
 							+ obstacle.getObstacleRadius()
 							&& isInVisibleRange(obstacle)
-							&& isOnTheRoad(obstacle)) {
+							&& isOnTheRoad(
+									obstacle,
+									((Obstacle) object).getObstacleRadius() + 0.25)) {
 						obstacles.add(obstacle);
 					}
 				}
@@ -203,22 +205,22 @@ public abstract class Animal {
 		return obstacles;
 	}
 
-	private boolean isOnTheRoad(Obstacle obstacle) {
-		NdPoint obstacleLocation = space.getLocation(obstacle);
+	private boolean isOnTheRoad(Object object, double radius) {
+		NdPoint location = space.getLocation(object);
 		NdPoint thisLocation = space.getLocation(this);
 		double A = velocity.getY() / velocity.getX();
 		double B = -1;
 		double C = thisLocation.getY() - A * thisLocation.getX();
-		return Math.abs(A * obstacleLocation.getX() + B
-				* obstacleLocation.getY() + C)
-				/ Math.hypot(A, B) < obstacle.getObstacleRadius() + 0.2;
+		return Math.abs(A * location.getX() + B * location.getY() + C)
+				/ Math.hypot(A, B) < radius;
 	}
 
 	protected boolean isInVisibleRange(Object object) {
-		NdPoint myPoint = space.getLocation(this);
-		NdPoint otherPoint = space.getLocation(object);
-		double radian = Math.atan2(otherPoint.getY() - myPoint.getY(),
-				otherPoint.getX() - myPoint.getX());
+		NdPoint thisLocation = space.getLocation(this);
+		NdPoint location = space.getLocation(object);
+		NdPoint displacement = new NdPoint(space.getDisplacement(thisLocation,
+				location));
+		double radian = Math.atan2(displacement.getY(), displacement.getX());
 		return Math.abs(radian - getRotation()) < Math.toRadians(angleOfSight);
 	}
 

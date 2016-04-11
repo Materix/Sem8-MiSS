@@ -91,14 +91,16 @@ public class Bird extends Animal {
 			for (Bird bird : neighborhood) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint birdLocation = space.getLocation(bird);
+				NdPoint displacement = new NdPoint(space.getDisplacement(
+						thisLocation, birdLocation));
 				velocity = new NdPoint(
 						velocity.getX()
 								+ cohesianRuleWeight
-								* (((birdLocation.getX() - thisLocation.getX()) * (distance(bird) - averageDistance)) / (distance(bird)))
+								* ((displacement.getX() * (distance(bird) - averageDistance)) / (distance(bird)))
 								/ neighborhood.size(),
 						velocity.getY()
 								+ cohesianRuleWeight
-								* (((birdLocation.getY() - thisLocation.getY()) * (distance(bird) - averageDistance)) / (distance(bird)))
+								* ((displacement.getY() * (distance(bird) - averageDistance)) / (distance(bird)))
 								/ neighborhood.size());
 			}
 			// NdPoint centerOfFlock = new NdPoint(0, 0);
@@ -131,17 +133,17 @@ public class Bird extends Animal {
 				if (distance(bird) < minDistance) {
 					NdPoint thisLocation = space.getLocation(this);
 					NdPoint birdLocation = space.getLocation(bird);
+					NdPoint displacement = new NdPoint(space.getDisplacement(
+							thisLocation, birdLocation));
 					velocity = new NdPoint(
 							velocity.getX()
 									- separationRuleWeight
-									* (((minDistance * (birdLocation.getX() - thisLocation.getX())) / (distance(bird))) - (birdLocation.getX() - thisLocation.getX()))
+									* (((minDistance * (displacement.getX())) / (distance(bird))) - (displacement.getX()))
 									/ neighborhood.size(),
 							velocity.getY()
 									- separationRuleWeight
-									* (((minDistance * (birdLocation.getY() - thisLocation
-											.getY())) / (distance(bird))) - (birdLocation
-											.getY() - thisLocation.getY()))
-									/ neighborhood.size());
+									* (((minDistance * (displacement.getY())) / (distance(bird))) - (displacement
+											.getY())) / neighborhood.size());
 				}
 			}
 			// NdPoint result = new NdPoint(0, 0);
