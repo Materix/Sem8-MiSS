@@ -88,6 +88,9 @@ public class Bird extends Animal {
 		if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
 			double averageDistance = neighborhood.stream()
 					.mapToDouble(this::distance).average().getAsDouble();
+			if (averageDistance - 0.5 > minDistance) {
+				averageDistance -= 0.5;
+			}
 			for (Bird bird : neighborhood) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint birdLocation = space.getLocation(bird);
