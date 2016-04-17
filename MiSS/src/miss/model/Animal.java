@@ -161,16 +161,17 @@ public abstract class Animal {
 
 	private void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
-		if (obstacles.size() > 0) {
+		if (obstacles.size() > 0 && avoidObstacleRuleWeight > 0) {
 			for (Obstacle obstacle : obstacles) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint obstacleLocation = space.getLocation(obstacle);
-				double[] displacement = space.getDisplacement(obstacleLocation,
-						thisLocation);
+				NdPoint displacement = new NdPoint(space.getDisplacement(
+						thisLocation, obstacleLocation));
 				velocity = new NdPoint(velocity.getX()
-						+ avoidObstacleRuleWeight / displacement[0],
-						velocity.getY() + avoidObstacleRuleWeight
-								/ displacement[1]);
+						- avoidObstacleRuleWeight / displacement.getX(),
+						velocity.getY());
+				velocity = new NdPoint(velocity.getX(), velocity.getY()
+						- avoidObstacleRuleWeight / displacement.getY());
 			}
 		}
 	}

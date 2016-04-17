@@ -106,25 +106,6 @@ public class Bird extends Animal {
 								* ((displacement.getY() * (distance(bird) - averageDistance)) / (distance(bird)))
 								/ neighborhood.size());
 			}
-			// NdPoint centerOfFlock = new NdPoint(0, 0);
-			// for (Bird bird : neighborhood) {
-			// NdPoint birdLocation = space.getLocation(bird);
-			// centerOfFlock = new NdPoint(centerOfFlock.getX()
-			// + birdLocation.getX(), centerOfFlock.getY()
-			// + birdLocation.getY());
-			// }
-			// centerOfFlock = new NdPoint(centerOfFlock.getX()
-			// / neighborhood.size(), centerOfFlock.getY()
-			// / neighborhood.size());
-			// NdPoint myPoint = space.getLocation(this);
-			// double[] displacement = space.getDisplacement(myPoint,
-			// centerOfFlock);
-			//
-			// centerOfFlock = new NdPoint(displacement[0] * cohesianRuleWeight,
-			// displacement[1] * cohesianRuleWeight);
-			//
-			// velocity = new NdPoint(velocity.getX() + centerOfFlock.getX(),
-			// velocity.getY() + centerOfFlock.getY());
 		}
 	}
 
@@ -149,22 +130,6 @@ public class Bird extends Animal {
 											.getY())) / neighborhood.size());
 				}
 			}
-			// NdPoint result = new NdPoint(0, 0);
-			// for (Bird bird : neighborhood) {
-			// if (distance(bird) < minDistance) {
-			// NdPoint myPoint = space.getLocation(this);
-			// NdPoint otherPoint = space.getLocation(bird);
-			// double[] displacement = space.getDisplacement(myPoint,
-			// otherPoint);
-			// result = new NdPoint(result.getX() - displacement[0],
-			// result.getY() - displacement[1]);
-			// }
-			// }
-			// // turnTo(result, 0);
-			// result = new NdPoint(result.getX() / separationRuleWeight,
-			// result.getY() / separationRuleWeight);
-			// speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-			// + result.getY());
 		}
 	}
 
@@ -184,31 +149,21 @@ public class Bird extends Animal {
 					velocity.getY()
 							+ (velocityAlignmentRuleWeight * (averageVelocity
 									.getY() - velocity.getY())));
-			// NdPoint result = new NdPoint(0, 0);
-			// for (Bird bird : neighborhood) {
-			// result = new NdPoint(result.getX() + bird.speed.getX(),
-			// result.getY() + bird.speed.getY());
-			// }
-			// result = new NdPoint(result.getX() / neighborhood.size(),
-			// result.getY() / neighborhood.size());
-			// result = new NdPoint((result.getX() - speed.getX())
-			// / speedAlignmentRuleWeight, (result.getY() - speed.getY())
-			// / speedAlignmentRuleWeight);
-			// speed = new NdPoint(speed.getX() + result.getX(), speed.getY()
-			// + result.getY());
 		}
 	}
 
+	// TODO add weight
 	public void avoidPredators() {
 		List<Predator> predators = getPredators();
 		if (predators.size() > 0) {
 			for (Predator predator : predators) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint predatorLocation = space.getLocation(predator);
-				double[] displacement = space.getDisplacement(predatorLocation,
-						thisLocation);
-				velocity = new NdPoint(velocity.getX() + 0.5 / displacement[0],
-						velocity.getY() + 0.5 / displacement[1]);
+				NdPoint displacement = new NdPoint(space.getDisplacement(
+						thisLocation, predatorLocation));
+				velocity = new NdPoint(velocity.getX() - 0.5
+						/ displacement.getX(), velocity.getY() - 0.5
+						/ displacement.getY());
 			}
 		}
 	}
