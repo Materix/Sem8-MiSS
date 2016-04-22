@@ -9,7 +9,6 @@ import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.relogo.ReLogoModel;
-import repast.simphony.space.SpatialException;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
@@ -109,11 +108,7 @@ public abstract class Animal {
 		NdPoint pt = space.getLocation(this);
 		double moveX = pt.getX() + velocity.getX();
 		double moveY = pt.getY() + velocity.getY();
-		try {
-			space.moveTo(this, moveX, moveY);
-		} catch (SpatialException e) {
-			System.err.println("Catched SpatialException:" + e.getMessage());
-		}
+		space.moveTo(this, moveX, moveY);
 	}
 
 	private void perturbation() {

@@ -26,6 +26,7 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 		int obstacleCount = params.getInteger("obstacleCount");
 		int obstacleRadius = params.getInteger("obstacleRadius");
 		int predatorCount = params.getInteger("predatorCount");
+		int initialEnergy = params.getInteger("initialEnergy");
 
 		context.setId("MiSS");
 
@@ -36,7 +37,7 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 						BOUND_SIZE), new WrapAroundBorders(), size, size);
 
 		for (int i = 0; i < birdCount; i++) {
-			context.add(new Bird(space));
+			context.add(new Bird(space, initialEnergy));
 		}
 
 		for (int i = 0; i < obstacleCount; i++) {

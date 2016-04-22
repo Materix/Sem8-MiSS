@@ -13,6 +13,10 @@ import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.util.SimUtilities;
 
 public class Bird extends Animal {
+	private double energy;
+
+	private double energyConsumedPerUnit;
+
 	private double cohesianRuleWeight;
 
 	private double separationRuleWeight;
@@ -25,8 +29,9 @@ public class Bird extends Animal {
 
 	private double predatorDetectRadius;
 
-	public Bird(ContinuousSpace<Object> space) {
+	public Bird(ContinuousSpace<Object> space, double initialEnergy) {
 		super(space);
+		energy = initialEnergy;
 	}
 
 	// @Setup
@@ -47,6 +52,8 @@ public class Bird extends Animal {
 				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT).toString());
 		predatorDetectRadius = Double.parseDouble(model.getModelParam(
 				BirdProperties.PREDATOR_DETECT_RADIUS).toString());
+		energyConsumedPerUnit = Double.parseDouble(model.getModelParam(
+				BirdProperties.ENERGY_CONSUMED_PER_UNIT).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
 
@@ -74,12 +81,21 @@ public class Bird extends Animal {
 				BirdProperties.PREDATOR_DETECT_RADIUS,
 				event -> predatorDetectRadius = Double.parseDouble(event
 						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				BirdProperties.ENERGY_CONSUMED_PER_UNIT,
+				event -> energyConsumedPerUnit = Double.parseDouble(event
+						.getNewValue().toString()));
 	}
 
 	@Override
 	public void forward() {
 		avoidPredators();
 		super.forward();
+		consumeEnergy();
+	}
+
+	private void consumeEnergy() {
+		energy = energy - getSpeed() * energyConsumedPerUnit;
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)

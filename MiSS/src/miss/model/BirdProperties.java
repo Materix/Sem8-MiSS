@@ -12,4 +12,8 @@ public interface BirdProperties {
 	static final String SPEED_ALIGNMENT_RULE_WEIGHT = "SPEED_ALIGNMENT_RULE_WEIGHT";
 
 	static final String PREDATOR_DETECT_RADIUS = "PREDATOR_DETECT_RADIUS";
+
+	static final String ENERGY_CONSUMED_PER_UNIT = "ENERGY_CONSUMED_PER_UNIT";
+
+	static final String ENERGY_THRESHOLD = "ENERGY_THRESHOLD";
 }
