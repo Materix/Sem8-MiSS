@@ -39,7 +39,7 @@ public class UserGlobalsAndPanelFactory extends
 		addSliderWL(BirdProperties.PREDATOR_DETECT_RADIUS,
 				BirdProperties.PREDATOR_DETECT_RADIUS, 1, 0.1, 10, 4);
 		addSliderWL(BirdProperties.ENERGY_CONSUMED_PER_UNIT,
-				BirdProperties.ENERGY_CONSUMED_PER_UNIT, 0.1, 0.01, 10, 1);
+				BirdProperties.ENERGY_CONSUMED_PER_UNIT, 0.01, 0.01, 1, 0.5);
 		addSliderWL(BirdProperties.ENERGY_THRESHOLD,
 				BirdProperties.ENERGY_THRESHOLD, 5, 0.1, 30, 10);
 		// addMonitor("currentDensity", 1);

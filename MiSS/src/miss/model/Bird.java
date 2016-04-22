@@ -29,6 +29,8 @@ public class Bird extends Animal {
 
 	private double predatorDetectRadius;
 
+	private double energyThreshold;
+
 	public Bird(ContinuousSpace<Object> space, double initialEnergy) {
 		super(space);
 		energy = initialEnergy;
@@ -54,6 +56,8 @@ public class Bird extends Animal {
 				BirdProperties.PREDATOR_DETECT_RADIUS).toString());
 		energyConsumedPerUnit = Double.parseDouble(model.getModelParam(
 				BirdProperties.ENERGY_CONSUMED_PER_UNIT).toString());
+		energyThreshold = Double.parseDouble(model.getModelParam(
+				BirdProperties.ENERGY_THRESHOLD).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
 
@@ -85,13 +89,35 @@ public class Bird extends Animal {
 				BirdProperties.ENERGY_CONSUMED_PER_UNIT,
 				event -> energyConsumedPerUnit = Double.parseDouble(event
 						.getNewValue().toString()));
+		propertiesMap.addPropertyChangeListener(
+				BirdProperties.ENERGY_THRESHOLD,
+				event -> energyThreshold = Double.parseDouble(event
+						.getNewValue().toString()));
 	}
 
 	@Override
 	public void forward() {
 		avoidPredators();
+		if (energy < energyThreshold) {
+			findGrass();
+		}
 		super.forward();
 		consumeEnergy();
+	}
+
+	private void findGrass() {
+		Grass nearestGrass = getNearestGrass();
+		if (distance(nearestGrass) < 1) { // TODO change to parameter maybe
+			energy += 20; // TODO change to parameter
+			nearestGrass.relocate();
+		} else {
+			NdPoint grassLocation = space.getLocation(nearestGrass);
+			NdPoint thisLocation = space.getLocation(this);
+			NdPoint displacement = new NdPoint(space.getDisplacement(
+					thisLocation, grassLocation));
+			velocity = new NdPoint(velocity.getX() + displacement.getX(),
+					velocity.getY() + displacement.getY());
+		}
 	}
 
 	private void consumeEnergy() {
@@ -185,7 +211,7 @@ public class Bird extends Animal {
 	}
 
 	private List<Predator> getPredators() {
-		List<Predator> circularNeighborhood = new ArrayList<Predator>();
+		List<Predator> circularNeighborhood = new ArrayList<>();
 		for (Object object : space.getObjects()) {
 			if (object instanceof Predator) {
 				Predator predator = (Predator) object;
@@ -199,7 +225,7 @@ public class Bird extends Animal {
 	}
 
 	private List<Bird> getNeighborhood() {
-		List<Bird> circularNeighborhood = new ArrayList<Bird>();
+		List<Bird> circularNeighborhood = new ArrayList<>();
 		for (Object object : space.getObjects()) {
 			if (object instanceof Bird) {
 				Bird bird = (Bird) object;
@@ -213,5 +239,19 @@ public class Bird extends Animal {
 		}
 		SimUtilities.shuffle(circularNeighborhood, RandomHelper.getUniform());
 		return circularNeighborhood;
+	}
+
+	private Grass getNearestGrass() {
+		List<Grass> grass = new ArrayList<>();
+		for (Object object : space.getObjects()) {
+			if (object instanceof Grass) {
+				grass.add((Grass) object);
+
+			}
+		}
+		grass.sort((grass1, grass2) -> {
+			return Double.compare(distance(grass1), distance(grass2));
+		});
+		return grass.get(0);
 	}
 }

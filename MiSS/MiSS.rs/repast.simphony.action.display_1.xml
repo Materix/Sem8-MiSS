@@ -11,6 +11,10 @@
       <string>miss.visualization.AnimalVisualization</string>
     </entry>
     <entry>
+      <string>miss.model.Grass</string>
+      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+    </entry>
+    <entry>
       <string>miss.model.Predator</string>
       <string>miss.visualization.AnimalVisualization</string>
     </entry>
@@ -23,6 +27,10 @@
     <entry>
       <string>miss.model.Bird</string>
       <null/>
+    </entry>
+    <entry>
+      <string>miss.model.Grass</string>
+      <string>miss.model.Grass.style_0.xml</string>
     </entry>
     <entry>
       <string>miss.model.Predator</string>
@@ -39,7 +47,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>1539056889</hashCode>
+    <hashCode>2085588616</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
@@ -47,15 +55,19 @@
   <layerOrder>
     <entry>
       <string>miss.model.Obstacle</string>
-      <int>1</int>
-    </entry>
-    <entry>
-      <string>miss.model.Bird</string>
       <int>2</int>
     </entry>
     <entry>
-      <string>miss.model.Predator</string>
+      <string>miss.model.Bird</string>
+      <int>3</int>
+    </entry>
+    <entry>
+      <string>miss.model.Grass</string>
       <int>0</int>
+    </entry>
+    <entry>
+      <string>miss.model.Predator</string>
+      <int>1</int>
     </entry>
   </layerOrder>
   <projections>
@@ -96,11 +108,9 @@
     </entry>
   </projectionDescriptors>
   <props/>
-  <backgroundColor>
-    <red>255</red>
-    <green>255</green>
-    <blue>255</blue>
-    <alpha>255</alpha>
+  <backgroundColor class="javax.swing.plaf.ColorUIResource">
+    <value>-986896</value>
+    <falpha>0.0</falpha>
   </backgroundColor>
   <valueLayers/>
 </repast.simphony.visualization.engine.CartesianDisplayDescriptor>

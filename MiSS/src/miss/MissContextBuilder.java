@@ -1,6 +1,7 @@
 package miss;
 
 import miss.model.Bird;
+import miss.model.Grass;
 import miss.model.Obstacle;
 import miss.model.Predator;
 import repast.simphony.context.Context;
@@ -10,9 +11,8 @@ import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
-import repast.simphony.space.Dimensions;
-import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
+import repast.simphony.space.continuous.RandomCartesianAdder;
 import repast.simphony.space.continuous.WrapAroundBorders;
 
 public class MissContextBuilder implements ContextBuilder<Object> {
@@ -28,16 +28,19 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 		int predatorCount = params.getInteger("predatorCount");
 		int initialEnergy = params.getInteger("initialEnergy");
 
+		int grassCount = params.getInteger("grassCount");
+
 		context.setId("MiSS");
 
 		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder
 				.createContinuousSpaceFactory(null);
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace(
-				"space", context, new NotOnBoundRandomCartesianAdder<>(
-						BOUND_SIZE), new WrapAroundBorders(), size, size);
+				"space", context, new RandomCartesianAdder<>(),
+				new WrapAroundBorders(), size, size);
 
 		for (int i = 0; i < birdCount; i++) {
-			context.add(new Bird(space, initialEnergy));
+			context.add(new Bird(space, initialEnergy
+					+ RandomHelper.getUniform().nextDoubleFromTo(-10, 10)));
 		}
 
 		for (int i = 0; i < obstacleCount; i++) {
@@ -48,40 +51,43 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 			context.add(new Predator(space));
 		}
 
+		for (int i = 0; i < grassCount; i++) {
+			context.add(new Grass(space, size));
+		}
+
 		return context;
 	}
-
-	private class NotOnBoundRandomCartesianAdder<T> implements
-			ContinuousAdder<T> {
-		private final double boundSize;
-
-		public NotOnBoundRandomCartesianAdder(double boundSize) {
-			this.boundSize = boundSize;
-		}
-
-		@Override
-		public void add(ContinuousSpace<T> space, T obj) {
-			Dimensions dims = space.getDimensions();
-			double[] location = new double[dims.size()];
-			findLocation(location, dims);
-			while (!space.moveTo(obj, location)) {
-				findLocation(location, dims);
-			}
-		}
-
-		private void findLocation(double[] location, Dimensions dims) {
-			double[] origin = dims.originToDoubleArray(null);
-			for (int i = 0; i < location.length; i++) {
-				try {
-					assert dims.getDimension(i) - boundSize > boundSize;
-					location[i] = RandomHelper.getUniform().nextDoubleFromTo(
-							boundSize, dims.getDimension(i) - boundSize)
-							- origin[i];
-				} catch (Exception e) {
-
-				}
-			}
-		}
-
-	}
+	// private class NotOnBoundRandomCartesianAdder<T> implements
+	// ContinuousAdder<T> {
+	// private final double boundSize;
+	//
+	// public NotOnBoundRandomCartesianAdder(double boundSize) {
+	// this.boundSize = boundSize;
+	// }
+	//
+	// @Override
+	// public void add(ContinuousSpace<T> space, T obj) {
+	// Dimensions dims = space.getDimensions();
+	// double[] location = new double[dims.size()];
+	// findLocation(location, dims);
+	// while (!space.moveTo(obj, location)) {
+	// findLocation(location, dims);
+	// }
+	// }
+	//
+	// private void findLocation(double[] location, Dimensions dims) {
+	// double[] origin = dims.originToDoubleArray(null);
+	// for (int i = 0; i < location.length; i++) {
+	// try {
+	// assert dims.getDimension(i) - boundSize > boundSize;
+	// location[i] = RandomHelper.getUniform().nextDoubleFromTo(
+	// boundSize, dims.getDimension(i) - boundSize)
+	// - origin[i];
+	// } catch (Exception e) {
+	//
+	// }
+	// }
+	// }
+	//
+	// }
 }
