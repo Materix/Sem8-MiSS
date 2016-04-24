@@ -101,10 +101,9 @@ public abstract class Animal {
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	public void forward() {
-		// avoidBoundary();
-		avoidObstacles();
 		perturbation();
 		limitVelocity();
+		avoidObstacles();
 		NdPoint pt = space.getLocation(this);
 		double moveX = pt.getX() + velocity.getX();
 		double moveY = pt.getY() + velocity.getY();
@@ -128,32 +127,6 @@ public abstract class Animal {
 		}
 	}
 
-	private void avoidBoundary() {
-		NdPoint myPoint = space.getLocation(this);
-		NdPoint result = new NdPoint(0, 0);
-		if (myPoint.getX() < minDistanceToBoundary
-				&& (getRotation() < -Math.PI / 2 || getRotation() > Math.PI / 2)) {
-			result = new NdPoint(result.getX() + boudaryPushForce,
-					result.getY());
-		} else if (myPoint.getX() > space.getDimensions().getDimension(0)
-				- minDistanceToBoundary
-				&& (getRotation() > -Math.PI / 2 || getRotation() < Math.PI / 2)) {
-			result = new NdPoint(result.getX() - boudaryPushForce,
-					result.getY());
-		}
-		if (myPoint.getY() < minDistanceToBoundary && getRotation() < 0) {
-			result = new NdPoint(result.getX(), result.getY()
-					+ boudaryPushForce);
-		} else if (myPoint.getY() > space.getDimensions().getDimension(1)
-				- minDistanceToBoundary
-				&& getRotation() > 0) {
-			result = new NdPoint(result.getX(), result.getY()
-					- boudaryPushForce);
-		}
-		velocity = new NdPoint(velocity.getX() + result.getX(), velocity.getY()
-				+ result.getY());
-	}
-
 	private void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
 		if (obstacles.size() > 0 && avoidObstacleRuleWeight > 0) {
@@ -162,11 +135,20 @@ public abstract class Animal {
 				NdPoint obstacleLocation = space.getLocation(obstacle);
 				NdPoint displacement = new NdPoint(space.getDisplacement(
 						thisLocation, obstacleLocation));
+
+				double weight = (obstacleDetectionRadius + obstacle
+						.getObstacleRadius()) / distance(obstacle);
+
+				System.out.println(avoidObstacleRuleWeight
+						/ displacement.getX() * weight);
+
+				System.out.println(velocity.getY() - avoidObstacleRuleWeight
+						/ displacement.getY() * weight);
+
 				velocity = new NdPoint(velocity.getX()
-						- avoidObstacleRuleWeight / displacement.getX(),
-						velocity.getY());
-				velocity = new NdPoint(velocity.getX(), velocity.getY()
-						- avoidObstacleRuleWeight / displacement.getY());
+						- avoidObstacleRuleWeight / displacement.getX()
+						* weight, velocity.getY() - avoidObstacleRuleWeight
+						/ displacement.getY() * weight);
 			}
 		}
 	}

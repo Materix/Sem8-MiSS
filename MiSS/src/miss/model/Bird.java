@@ -101,14 +101,15 @@ public class Bird extends Animal {
 		if (energy < energyThreshold) {
 			findGrass();
 		}
-		super.forward();
 		consumeEnergy();
+		super.forward();
+
 	}
 
 	private void findGrass() {
 		Grass nearestGrass = getNearestGrass();
 		if (distance(nearestGrass) < 1) { // TODO change to parameter maybe
-			energy += 20; // TODO change to parameter
+			energy += 40; // TODO change to parameter
 			nearestGrass.relocate();
 		} else {
 			NdPoint grassLocation = space.getLocation(nearestGrass);
