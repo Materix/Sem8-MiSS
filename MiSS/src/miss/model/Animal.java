@@ -34,8 +34,11 @@ public abstract class Animal {
 
 	protected NdPoint velocity;
 
+	protected boolean obstacleDetected;
+
 	public Animal(ContinuousSpace<Object> space) {
 		this.space = space;
+		obstacleDetected = false;
 		velocity = new NdPoint(RandomHelper.nextDoubleFromTo(-1, 1),
 				RandomHelper.nextDoubleFromTo(-1, 1));
 	}
@@ -101,10 +104,9 @@ public abstract class Animal {
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	public void forward() {
-		// avoidBoundary();
-		avoidObstacles();
 		perturbation();
 		limitVelocity();
+		avoidObstacles();
 		NdPoint pt = space.getLocation(this);
 		double moveX = pt.getX() + velocity.getX();
 		double moveY = pt.getY() + velocity.getY();
@@ -128,35 +130,10 @@ public abstract class Animal {
 		}
 	}
 
-	private void avoidBoundary() {
-		NdPoint myPoint = space.getLocation(this);
-		NdPoint result = new NdPoint(0, 0);
-		if (myPoint.getX() < minDistanceToBoundary
-				&& (getRotation() < -Math.PI / 2 || getRotation() > Math.PI / 2)) {
-			result = new NdPoint(result.getX() + boudaryPushForce,
-					result.getY());
-		} else if (myPoint.getX() > space.getDimensions().getDimension(0)
-				- minDistanceToBoundary
-				&& (getRotation() > -Math.PI / 2 || getRotation() < Math.PI / 2)) {
-			result = new NdPoint(result.getX() - boudaryPushForce,
-					result.getY());
-		}
-		if (myPoint.getY() < minDistanceToBoundary && getRotation() < 0) {
-			result = new NdPoint(result.getX(), result.getY()
-					+ boudaryPushForce);
-		} else if (myPoint.getY() > space.getDimensions().getDimension(1)
-				- minDistanceToBoundary
-				&& getRotation() > 0) {
-			result = new NdPoint(result.getX(), result.getY()
-					- boudaryPushForce);
-		}
-		velocity = new NdPoint(velocity.getX() + result.getX(), velocity.getY()
-				+ result.getY());
-	}
-
 	private void avoidObstacles() {
 		List<Obstacle> obstacles = getObstacles();
 		if (obstacles.size() > 0 && avoidObstacleRuleWeight > 0) {
+			obstacleDetected = true;
 			for (Obstacle obstacle : obstacles) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint obstacleLocation = space.getLocation(obstacle);
@@ -168,6 +145,8 @@ public abstract class Animal {
 				velocity = new NdPoint(velocity.getX(), velocity.getY()
 						- avoidObstacleRuleWeight / displacement.getY());
 			}
+		} else {
+			obstacleDetected = false;
 		}
 	}
 

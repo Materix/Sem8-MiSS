@@ -31,9 +31,12 @@ public class Bird extends Animal {
 
 	private double energyThreshold;
 
+	private boolean predatorDetected;
+
 	public Bird(ContinuousSpace<Object> space, double initialEnergy) {
 		super(space);
 		energy = initialEnergy;
+		predatorDetected = false;
 	}
 
 	// @Setup
@@ -101,14 +104,15 @@ public class Bird extends Animal {
 		if (energy < energyThreshold) {
 			findGrass();
 		}
-		super.forward();
 		consumeEnergy();
+		super.forward();
+
 	}
 
 	private void findGrass() {
 		Grass nearestGrass = getNearestGrass();
 		if (distance(nearestGrass) < 1) { // TODO change to parameter maybe
-			energy += 20; // TODO change to parameter
+			energy += 40; // TODO change to parameter
 			nearestGrass.relocate();
 		} else {
 			NdPoint grassLocation = space.getLocation(nearestGrass);
@@ -126,50 +130,55 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void cohesianRule() {
-		List<Bird> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
-			double averageDistance = neighborhood.stream()
-					.mapToDouble(this::distance).average().getAsDouble();
-			if (averageDistance - 0.5 > minDistance) {
-				averageDistance -= 0.5;
-			}
-			for (Bird bird : neighborhood) {
-				NdPoint thisLocation = space.getLocation(this);
-				NdPoint birdLocation = space.getLocation(bird);
-				NdPoint displacement = new NdPoint(space.getDisplacement(
-						thisLocation, birdLocation));
-				velocity = new NdPoint(
-						velocity.getX()
-								+ cohesianRuleWeight
-								* ((displacement.getX() * (distance(bird) - averageDistance)) / (distance(bird)))
-								/ neighborhood.size(),
-						velocity.getY()
-								+ cohesianRuleWeight
-								* ((displacement.getY() * (distance(bird) - averageDistance)) / (distance(bird)))
-								/ neighborhood.size());
-			}
-		}
-	}
-
-	@ScheduledMethod(start = 1, interval = 1)
-	public void separationRule() {
-		List<Bird> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0 && separationRuleWeight != 0) {
-			for (Bird bird : neighborhood) {
-				if (distance(bird) < minDistance) {
+		if (!predatorDetected) {
+			List<Bird> neighborhood = getNeighborhood();
+			if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
+				double averageDistance = neighborhood.stream()
+						.mapToDouble(this::distance).average().getAsDouble();
+				if (averageDistance - 0.5 > minDistance) {
+					averageDistance -= 0.5;
+				}
+				for (Bird bird : neighborhood) {
 					NdPoint thisLocation = space.getLocation(this);
 					NdPoint birdLocation = space.getLocation(bird);
 					NdPoint displacement = new NdPoint(space.getDisplacement(
 							thisLocation, birdLocation));
 					velocity = new NdPoint(
 							velocity.getX()
-									- separationRuleWeight
-									* (((minDistance * (displacement.getX())) / (distance(bird))) - (displacement.getX()))
+									+ cohesianRuleWeight
+									* ((displacement.getX() * (distance(bird) - averageDistance)) / (distance(bird)))
 									/ neighborhood.size(),
 							velocity.getY()
-									- separationRuleWeight
-									* (((minDistance * (displacement.getY())) / (distance(bird))) - (displacement
-											.getY())) / neighborhood.size());
+									+ cohesianRuleWeight
+									* ((displacement.getY() * (distance(bird) - averageDistance)) / (distance(bird)))
+									/ neighborhood.size());
+				}
+			}
+		}
+	}
+
+	@ScheduledMethod(start = 1, interval = 1)
+	public void separationRule() {
+		if (!predatorDetected) {
+			List<Bird> neighborhood = getNeighborhood();
+			if (neighborhood.size() > 0 && separationRuleWeight != 0) {
+				for (Bird bird : neighborhood) {
+					if (distance(bird) < minDistance) {
+						NdPoint thisLocation = space.getLocation(this);
+						NdPoint birdLocation = space.getLocation(bird);
+						NdPoint displacement = new NdPoint(
+								space.getDisplacement(thisLocation,
+										birdLocation));
+						velocity = new NdPoint(
+								velocity.getX()
+										- separationRuleWeight
+										* (((minDistance * (displacement.getX())) / (distance(bird))) - (displacement.getX()))
+										/ neighborhood.size(),
+								velocity.getY()
+										- separationRuleWeight
+										* (((minDistance * (displacement.getY())) / (distance(bird))) - (displacement
+												.getY())) / neighborhood.size());
+					}
 				}
 			}
 		}
@@ -177,20 +186,22 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void velocityAlignmentRule() {
-		List<Bird> neighborhood = getNeighborhood();
-		if (neighborhood.size() > 0 && velocityAlignmentRuleWeight != 0) {
-			NdPoint averageVelocity = new NdPoint(neighborhood.stream()
-					.mapToDouble(bird -> bird.getVelocity().getX()).average()
-					.getAsDouble(), neighborhood.stream()
-					.mapToDouble(bird -> bird.getVelocity().getY()).average()
-					.getAsDouble());
-			velocity = new NdPoint(
-					velocity.getX()
-							+ (velocityAlignmentRuleWeight * (averageVelocity
-									.getX() - velocity.getX())),
-					velocity.getY()
-							+ (velocityAlignmentRuleWeight * (averageVelocity
-									.getY() - velocity.getY())));
+		if (!predatorDetected) {
+			List<Bird> neighborhood = getNeighborhood();
+			if (neighborhood.size() > 0 && velocityAlignmentRuleWeight != 0) {
+				NdPoint averageVelocity = new NdPoint(neighborhood.stream()
+						.mapToDouble(bird -> bird.getVelocity().getX())
+						.average().getAsDouble(), neighborhood.stream()
+						.mapToDouble(bird -> bird.getVelocity().getY())
+						.average().getAsDouble());
+				velocity = new NdPoint(
+						velocity.getX()
+								+ (velocityAlignmentRuleWeight * (averageVelocity
+										.getX() - velocity.getX())),
+						velocity.getY()
+								+ (velocityAlignmentRuleWeight * (averageVelocity
+										.getY() - velocity.getY())));
+			}
 		}
 	}
 
@@ -198,6 +209,7 @@ public class Bird extends Animal {
 	public void avoidPredators() {
 		List<Predator> predators = getPredators();
 		if (predators.size() > 0) {
+			predatorDetected = true;
 			for (Predator predator : predators) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint predatorLocation = space.getLocation(predator);
@@ -207,6 +219,8 @@ public class Bird extends Animal {
 						/ displacement.getX(), velocity.getY() - 0.5
 						/ displacement.getY());
 			}
+		} else {
+			predatorDetected = false;
 		}
 	}
 
