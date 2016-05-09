@@ -1,5 +1,7 @@
 package miss;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import miss.model.Bird;
@@ -14,6 +16,7 @@ import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.Dimensions;
+import repast.simphony.space.SpatialException;
 import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
@@ -38,9 +41,10 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 
 		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder
 				.createContinuousSpaceFactory(null);
+		ObstacleWrapAroundBorders pointTranslator = new ObstacleWrapAroundBorders();
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace(
 				"space", context, new NotOnBoundRandomCartesianAdder<>(
-						BOUND_SIZE), new WrapAroundBorders(), size, size);
+						BOUND_SIZE), pointTranslator, size, size);
 
 		for (int i = 0; i < birdCount; i++) {
 			context.add(new Bird(space, initialEnergy
@@ -58,8 +62,47 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 		for (int i = 0; i < grassCount; i++) {
 			context.add(new Grass(space, size));
 		}
+		pointTranslator.setSpace(space);
 
 		return context;
+	}
+
+	private class ObstacleWrapAroundBorders extends WrapAroundBorders {
+		private ContinuousSpace<Object> space;
+
+		private List<Obstacle> obstacle;
+
+		@Override
+		public void transform(double[] transformedLocation,
+				double... targetLocation) {
+			setNewLocationWrapped(false);
+			double[] newLocation = new double[targetLocation.length];
+			for (int i = 0; i < targetLocation.length; i++) {
+				newLocation[i] = getNewCoord(i, targetLocation[i]);
+			}
+			NdPoint newLocationPoint = new NdPoint(newLocation);
+			if (obstacle == null
+					|| obstacle.stream().allMatch(
+							obstacle -> space.getDistance(
+									space.getLocation(obstacle),
+									newLocationPoint) > obstacle
+									.getObstacleRadius())) {
+				for (int i = 0; i < targetLocation.length; i++) {
+					transformedLocation[i] = newLocation[i];
+				}
+			} else {
+				throw new SpatialException("");
+			}
+		}
+
+		public void setSpace(ContinuousSpace<Object> space) {
+			this.space = space;
+			obstacle = StreamSupport
+					.stream(space.getObjects().spliterator(), false)
+					.filter(ob -> ob instanceof Obstacle)
+					.map(ob -> Obstacle.class.cast(ob))
+					.collect(Collectors.toList());
+		}
 	}
 
 	private class NotOnBoundRandomCartesianAdder<T> implements
@@ -79,8 +122,9 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 
 		private double[] findLocation(ContinuousSpace<T> space, Dimensions dims) {
 			boolean valid = false;
+			int step = 0;
 			double[] location = new double[dims.size()];
-			while (!valid) {
+			while (!valid && step < 500) {
 				double[] origin = dims.originToDoubleArray(null);
 				Uniform uniform = RandomHelper.getUniform();
 				for (int i = 0; i < location.length; i++) {
@@ -100,6 +144,7 @@ public class MissContextBuilder implements ContextBuilder<Object> {
 						.allMatch(
 								objectLocation -> space.getDistance(
 										objectLocation, newLocation) > boundSize);
+				step++;
 			}
 			return location;
 		}

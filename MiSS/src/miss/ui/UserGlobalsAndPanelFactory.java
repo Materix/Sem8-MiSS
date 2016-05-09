@@ -10,15 +10,11 @@ public class UserGlobalsAndPanelFactory extends
 	@Override
 	public void addGlobalsAndPanelComponents() {
 		addSliderWL(AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT,
-				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT, 0, 0.01, 1, 0.1);
+				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT, 0, 0.01, 1, 0.4);
 		addSliderWL(AnimalProperties.PERTURBATION_RULE_WEIGHT,
 				AnimalProperties.PERTURBATION_RULE_WEIGHT, 0, 0.01, 1, 0.2);
-		addSliderWL(AnimalProperties.BOUNDARY_PUSH_FORCE,
-				AnimalProperties.BOUNDARY_PUSH_FORCE, 0, 0.01, 1, 0.1);
-		addSliderWL(AnimalProperties.MIN_DISTANCE_TO_BOUNDARY,
-				AnimalProperties.MIN_DISTANCE_TO_BOUNDARY, 0d, 0.1, 5d, 2.5d);
 		addSliderWL(AnimalProperties.OBSTACLE_DETECTION_RADIUS,
-				AnimalProperties.OBSTACLE_DETECTION_RADIUS, 0, 0.1, 10d, 2.5d);
+				AnimalProperties.OBSTACLE_DETECTION_RADIUS, 0, 0.1, 10d, 3.5d);
 		addSliderWL(AnimalProperties.MAX_VELOCITY,
 				AnimalProperties.MAX_VELOCITY, 0d, 0.01, 1d, 0.5);
 		addSliderWL(AnimalProperties.MIN_VELOCITY,

@@ -9,6 +9,7 @@ import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.relogo.ReLogoModel;
+import repast.simphony.space.SpatialException;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
@@ -17,10 +18,6 @@ public abstract class Animal {
 	private double avoidObstacleRuleWeight;
 
 	private double perturbationRuleWeight;
-
-	private double boudaryPushForce;
-
-	private double minDistanceToBoundary;
 
 	private double obstacleDetectionRadius;
 
@@ -48,8 +45,6 @@ public abstract class Animal {
 	public void setup() {
 		ReLogoModel model = ReLogoModel.getInstance();
 
-		minDistanceToBoundary = Double.parseDouble(model.getModelParam(
-				AnimalProperties.MIN_DISTANCE_TO_BOUNDARY).toString());
 		obstacleDetectionRadius = Double.parseDouble(model.getModelParam(
 				AnimalProperties.OBSTACLE_DETECTION_RADIUS).toString());
 		maxVelocity = Double.parseDouble(model.getModelParam(
@@ -62,15 +57,9 @@ public abstract class Animal {
 				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT).toString());
 		perturbationRuleWeight = Double.parseDouble(model.getModelParam(
 				AnimalProperties.PERTURBATION_RULE_WEIGHT).toString());
-		boudaryPushForce = Double.parseDouble(model.getModelParam(
-				AnimalProperties.BOUNDARY_PUSH_FORCE).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
 
-		propertiesMap.addPropertyChangeListener(
-				AnimalProperties.MIN_DISTANCE_TO_BOUNDARY,
-				event -> minDistanceToBoundary = Double.parseDouble(event
-						.getNewValue().toString()));
 		propertiesMap.addPropertyChangeListener(
 				AnimalProperties.OBSTACLE_DETECTION_RADIUS,
 				event -> obstacleDetectionRadius = Double.parseDouble(event
@@ -95,11 +84,6 @@ public abstract class Animal {
 				AnimalProperties.PERTURBATION_RULE_WEIGHT,
 				event -> perturbationRuleWeight = Double.parseDouble(event
 						.getNewValue().toString()));
-		propertiesMap.addPropertyChangeListener(
-				AnimalProperties.BOUNDARY_PUSH_FORCE,
-				event -> boudaryPushForce = Double.parseDouble(event
-						.getNewValue().toString()));
-
 	}
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
@@ -110,7 +94,11 @@ public abstract class Animal {
 		NdPoint pt = space.getLocation(this);
 		double moveX = pt.getX() + velocity.getX();
 		double moveY = pt.getY() + velocity.getY();
-		space.moveTo(this, moveX, moveY);
+		try {
+			space.moveTo(this, moveX, moveY);
+		} catch (SpatialException e) {
+
+		}
 	}
 
 	private void perturbation() {
@@ -130,11 +118,11 @@ public abstract class Animal {
 		}
 	}
 
-	private void avoidObstacles() {
-		List<Obstacle> obstacles = getObstacles();
+	protected void avoidObstacles() {
+		List<Object> obstacles = getObstacles();
 		if (obstacles.size() > 0 && avoidObstacleRuleWeight > 0) {
 			obstacleDetected = true;
-			for (Obstacle obstacle : obstacles) {
+			for (Object obstacle : obstacles) {
 				NdPoint thisLocation = space.getLocation(this);
 				NdPoint obstacleLocation = space.getLocation(obstacle);
 				NdPoint displacement = new NdPoint(space.getDisplacement(
@@ -160,8 +148,8 @@ public abstract class Animal {
 		return space.getDistance(myPoint, otherPoint);
 	}
 
-	private List<Obstacle> getObstacles() {
-		List<Obstacle> obstacles = new ArrayList<Obstacle>();
+	protected List<Object> getObstacles() {
+		List<Object> obstacles = new ArrayList<Object>();
 		for (Object object : space.getObjects()) {
 			if (object instanceof Obstacle) {
 				Obstacle obstacle = (Obstacle) object;

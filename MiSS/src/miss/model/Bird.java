@@ -100,7 +100,6 @@ public class Bird extends Animal {
 
 	@Override
 	public void forward() {
-		avoidPredators();
 		if (energy < energyThreshold) {
 			findGrass();
 		}
@@ -110,17 +109,19 @@ public class Bird extends Animal {
 	}
 
 	private void findGrass() {
-		Grass nearestGrass = getNearestGrass();
-		if (distance(nearestGrass) < 1) { // TODO change to parameter maybe
-			energy += 40; // TODO change to parameter
-			nearestGrass.relocate();
-		} else {
-			NdPoint grassLocation = space.getLocation(nearestGrass);
-			NdPoint thisLocation = space.getLocation(this);
-			NdPoint displacement = new NdPoint(space.getDisplacement(
-					thisLocation, grassLocation));
-			velocity = new NdPoint(velocity.getX() + displacement.getX(),
-					velocity.getY() + displacement.getY());
+		if (!predatorDetected && !obstacleDetected) {
+			Grass nearestGrass = getNearestGrass();
+			if (distance(nearestGrass) < 1) { // TODO change to parameter maybe
+				energy += 150; // TODO change to parameter
+				nearestGrass.relocate();
+			} else {
+				NdPoint grassLocation = space.getLocation(nearestGrass);
+				NdPoint thisLocation = space.getLocation(this);
+				NdPoint displacement = new NdPoint(space.getDisplacement(
+						thisLocation, grassLocation));
+				velocity = new NdPoint(velocity.getX() + displacement.getX(),
+						velocity.getY() + displacement.getY());
+			}
 		}
 	}
 
@@ -130,7 +131,7 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void cohesianRule() {
-		if (!predatorDetected) {
+		if (!predatorDetected && !obstacleDetected) {
 			List<Bird> neighborhood = getNeighborhood();
 			if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
 				double averageDistance = neighborhood.stream()
@@ -159,7 +160,7 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void separationRule() {
-		if (!predatorDetected) {
+		if (!predatorDetected && !obstacleDetected) {
 			List<Bird> neighborhood = getNeighborhood();
 			if (neighborhood.size() > 0 && separationRuleWeight != 0) {
 				for (Bird bird : neighborhood) {
@@ -186,7 +187,7 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void velocityAlignmentRule() {
-		if (!predatorDetected) {
+		if (!predatorDetected && !obstacleDetected) {
 			List<Bird> neighborhood = getNeighborhood();
 			if (neighborhood.size() > 0 && velocityAlignmentRuleWeight != 0) {
 				NdPoint averageVelocity = new NdPoint(neighborhood.stream()
@@ -205,23 +206,11 @@ public class Bird extends Animal {
 		}
 	}
 
-	// TODO add weight
-	public void avoidPredators() {
-		List<Predator> predators = getPredators();
-		if (predators.size() > 0) {
-			predatorDetected = true;
-			for (Predator predator : predators) {
-				NdPoint thisLocation = space.getLocation(this);
-				NdPoint predatorLocation = space.getLocation(predator);
-				NdPoint displacement = new NdPoint(space.getDisplacement(
-						thisLocation, predatorLocation));
-				velocity = new NdPoint(velocity.getX() - 0.5
-						/ displacement.getX(), velocity.getY() - 0.5
-						/ displacement.getY());
-			}
-		} else {
-			predatorDetected = false;
-		}
+	@Override
+	protected List<Object> getObstacles() {
+		List<Object> obstacles = super.getObstacles();
+		obstacles.addAll(getPredators());
+		return obstacles;
 	}
 
 	private List<Predator> getPredators() {
