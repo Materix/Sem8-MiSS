@@ -9,8 +9,15 @@ public class UserGlobalsAndPanelFactory extends
 
 	@Override
 	public void addGlobalsAndPanelComponents() {
+		addSwitchWL(AnimalProperties.AVOID_OBSTACLE,
+				AnimalProperties.AVOID_OBSTACLE, true);
+
 		addSliderWL(AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT,
 				AnimalProperties.AVOID_OBSTACLE_RULE_WEIGHT, 0, 0.01, 1, 0.4);
+
+		addSwitchWL(AnimalProperties.PERTURBATION,
+				AnimalProperties.PERTURBATION, true);
+
 		addSliderWL(AnimalProperties.PERTURBATION_RULE_WEIGHT,
 				AnimalProperties.PERTURBATION_RULE_WEIGHT, 0, 0.01, 1, 0.2);
 		addSliderWL(AnimalProperties.OBSTACLE_DETECTION_RADIUS,
@@ -22,18 +29,30 @@ public class UserGlobalsAndPanelFactory extends
 		addSliderWL(AnimalProperties.ANGLE_OF_SIGHT,
 				AnimalProperties.ANGLE_OF_SIGHT, 0d, 1, 360d, 160);
 
+		addSwitchWL(BirdProperties.COHESIAN, BirdProperties.COHESIAN, true);
+
 		addSliderWL(BirdProperties.COHESIAN_RULE_WEIGHT,
 				BirdProperties.COHESIAN_RULE_WEIGHT, 0d, 0.01, 1, 0.15);
+
+		addSwitchWL(BirdProperties.SEPARATION, BirdProperties.SEPARATION, true);
 		addSliderWL(BirdProperties.SEPARATION_RULE_WEIGHT,
 				BirdProperties.SEPARATION_RULE_WEIGHT, 0d, 0.01, 1, 0.1);
+
+		addSwitchWL(BirdProperties.SPEED_ALIGNMENT,
+				BirdProperties.SPEED_ALIGNMENT, true);
 		addSliderWL(BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT,
 				BirdProperties.SPEED_ALIGNMENT_RULE_WEIGHT, 0d, 0.01, 1, 0.15);
 		addSliderWL(BirdProperties.MIN_DISTANCE, BirdProperties.MIN_DISTANCE,
 				0d, 0.1, 3d, 1);
 		addSliderWL(BirdProperties.NEIGHBORHOOD_RADIUS,
 				BirdProperties.NEIGHBORHOOD_RADIUS, 1, 0.1, 10, 4);
+		addSwitchWL(BirdProperties.AVOID_PREDATOR,
+				BirdProperties.AVOID_PREDATOR, true);
 		addSliderWL(BirdProperties.PREDATOR_DETECT_RADIUS,
 				BirdProperties.PREDATOR_DETECT_RADIUS, 1, 0.1, 10, 4);
+
+		addSwitchWL(BirdProperties.ENERGY, BirdProperties.ENERGY, true);
+
 		addSliderWL(BirdProperties.ENERGY_CONSUMED_PER_UNIT,
 				BirdProperties.ENERGY_CONSUMED_PER_UNIT, 0.01, 0.01, 1, 0.5);
 		addSliderWL(BirdProperties.ENERGY_THRESHOLD,

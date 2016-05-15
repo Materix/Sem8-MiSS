@@ -16,4 +16,14 @@ public interface BirdProperties {
 	static final String ENERGY_CONSUMED_PER_UNIT = "ENERGY_CONSUMED_PER_UNIT";
 
 	static final String ENERGY_THRESHOLD = "ENERGY_THRESHOLD";
+
+	static final String AVOID_PREDATOR = "AVOID_PREDATOR";
+
+	static final String SPEED_ALIGNMENT = "SPEED_ALIGNMENT";
+
+	static final String SEPARATION = "SEPARATION";
+
+	static final String COHESIAN = "COHESIAN";
+
+	static final String ENERGY = "ENERGY";
 }

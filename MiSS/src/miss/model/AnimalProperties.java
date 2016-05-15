@@ -1,6 +1,7 @@
 package miss.model;
 
 public interface AnimalProperties {
+	static final String AVOID_OBSTACLE = "AVOID_OBSTACLE";
 
 	static final String MIN_DISTANCE_TO_BOUNDARY = "MIN_DTSTANCE_TO_BOUNDARY";
 
@@ -17,4 +18,6 @@ public interface AnimalProperties {
 	static final String PERTURBATION_RULE_WEIGHT = "PERTURBATION_RULE_WEIGHT";
 
 	static final String BOUNDARY_PUSH_FORCE = "BOUNDARY_PUSH_FORCE";
+
+	static final String PERTURBATION = "PERTURBATION";
 }

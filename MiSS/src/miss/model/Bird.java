@@ -13,6 +13,17 @@ import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.util.SimUtilities;
 
 public class Bird extends Animal {
+
+	private boolean avoidPredator;
+
+	private boolean speedAlignment;
+
+	private boolean separation;
+
+	private boolean cohesian;
+
+	private boolean energyFlag;
+
 	private double energy;
 
 	private double energyConsumedPerUnit;
@@ -45,6 +56,13 @@ public class Bird extends Animal {
 		super.setup();
 		ReLogoModel model = ReLogoModel.getInstance();
 
+		avoidPredator = (boolean) model
+				.getModelParam(BirdProperties.AVOID_PREDATOR);
+		speedAlignment = (boolean) model
+				.getModelParam(BirdProperties.SPEED_ALIGNMENT);
+		separation = (boolean) model.getModelParam(BirdProperties.SEPARATION);
+		cohesian = (boolean) model.getModelParam(BirdProperties.COHESIAN);
+
 		neighborhoodRadius = Double.parseDouble(model.getModelParam(
 				BirdProperties.NEIGHBORHOOD_RADIUS).toString());
 		minDistance = Double.parseDouble(model.getModelParam(
@@ -63,6 +81,15 @@ public class Bird extends Animal {
 				BirdProperties.ENERGY_THRESHOLD).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
+
+		propertiesMap.addPropertyChangeListener(BirdProperties.AVOID_PREDATOR,
+				event -> avoidPredator = (boolean) event.getNewValue());
+		propertiesMap.addPropertyChangeListener(BirdProperties.COHESIAN,
+				event -> cohesian = (boolean) event.getNewValue());
+		propertiesMap.addPropertyChangeListener(BirdProperties.SEPARATION,
+				event -> separation = (boolean) event.getNewValue());
+		propertiesMap.addPropertyChangeListener(BirdProperties.SPEED_ALIGNMENT,
+				event -> speedAlignment = (boolean) event.getNewValue());
 
 		propertiesMap.addPropertyChangeListener(
 				BirdProperties.NEIGHBORHOOD_RADIUS,
@@ -131,7 +158,7 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void cohesianRule() {
-		if (!predatorDetected && !obstacleDetected) {
+		if (!predatorDetected && !obstacleDetected && cohesian) {
 			List<Bird> neighborhood = getNeighborhood();
 			if (neighborhood.size() > 0 && cohesianRuleWeight != 0) {
 				double averageDistance = neighborhood.stream()
@@ -160,7 +187,7 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void separationRule() {
-		if (!predatorDetected && !obstacleDetected) {
+		if (!predatorDetected && !obstacleDetected && separation) {
 			List<Bird> neighborhood = getNeighborhood();
 			if (neighborhood.size() > 0 && separationRuleWeight != 0) {
 				for (Bird bird : neighborhood) {
@@ -187,7 +214,7 @@ public class Bird extends Animal {
 
 	@ScheduledMethod(start = 1, interval = 1)
 	public void velocityAlignmentRule() {
-		if (!predatorDetected && !obstacleDetected) {
+		if (!predatorDetected && !obstacleDetected && speedAlignment) {
 			List<Bird> neighborhood = getNeighborhood();
 			if (neighborhood.size() > 0 && velocityAlignmentRuleWeight != 0) {
 				NdPoint averageVelocity = new NdPoint(neighborhood.stream()
@@ -215,15 +242,18 @@ public class Bird extends Animal {
 
 	private List<Predator> getPredators() {
 		List<Predator> circularNeighborhood = new ArrayList<>();
-		for (Object object : space.getObjects()) {
-			if (object instanceof Predator) {
-				Predator predator = (Predator) object;
-				if (distance(predator) <= predatorDetectRadius) {
-					circularNeighborhood.add(predator);
+		if (avoidPredator) {
+			for (Object object : space.getObjects()) {
+				if (object instanceof Predator) {
+					Predator predator = (Predator) object;
+					if (distance(predator) <= predatorDetectRadius) {
+						circularNeighborhood.add(predator);
+					}
 				}
 			}
+			SimUtilities.shuffle(circularNeighborhood,
+					RandomHelper.getUniform());
 		}
-		SimUtilities.shuffle(circularNeighborhood, RandomHelper.getUniform());
 		return circularNeighborhood;
 	}
 

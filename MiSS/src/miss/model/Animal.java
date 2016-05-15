@@ -15,6 +15,10 @@ import repast.simphony.space.continuous.NdPoint;
 
 public abstract class Animal {
 
+	private boolean avoidObstacle;
+
+	private boolean perturbation;
+
 	private double avoidObstacleRuleWeight;
 
 	private double perturbationRuleWeight;
@@ -45,6 +49,11 @@ public abstract class Animal {
 	public void setup() {
 		ReLogoModel model = ReLogoModel.getInstance();
 
+		avoidObstacle = (boolean) model
+				.getModelParam(AnimalProperties.AVOID_OBSTACLE);
+		perturbation = (boolean) model
+				.getModelParam(AnimalProperties.PERTURBATION);
+
 		obstacleDetectionRadius = Double.parseDouble(model.getModelParam(
 				AnimalProperties.OBSTACLE_DETECTION_RADIUS).toString());
 		maxVelocity = Double.parseDouble(model.getModelParam(
@@ -59,6 +68,12 @@ public abstract class Animal {
 				AnimalProperties.PERTURBATION_RULE_WEIGHT).toString());
 
 		ObservableMap propertiesMap = ((ObservableMap) model.getModelParams());
+
+		propertiesMap.addPropertyChangeListener(
+				AnimalProperties.AVOID_OBSTACLE,
+				event -> avoidObstacle = (boolean) event.getNewValue());
+		propertiesMap.addPropertyChangeListener(AnimalProperties.PERTURBATION,
+				event -> perturbation = (boolean) event.getNewValue());
 
 		propertiesMap.addPropertyChangeListener(
 				AnimalProperties.OBSTACLE_DETECTION_RADIUS,
@@ -102,11 +117,13 @@ public abstract class Animal {
 	}
 
 	private void perturbation() {
-		velocity = new NdPoint(perturbationRuleWeight * maxVelocity
-				* RandomHelper.nextDoubleFromTo(-0.5, 0.5) + velocity.getX(),
-				perturbationRuleWeight * maxVelocity
-						* RandomHelper.nextDoubleFromTo(-0.5, 0.5)
-						+ velocity.getY());
+		if (perturbation) {
+			velocity = new NdPoint(perturbationRuleWeight * maxVelocity
+					* RandomHelper.nextDoubleFromTo(-0.5, 0.5)
+					+ velocity.getX(), perturbationRuleWeight * maxVelocity
+					* RandomHelper.nextDoubleFromTo(-0.5, 0.5)
+					+ velocity.getY());
+		}
 	}
 
 	private void limitVelocity() {
@@ -150,17 +167,19 @@ public abstract class Animal {
 
 	protected List<Object> getObstacles() {
 		List<Object> obstacles = new ArrayList<Object>();
-		for (Object object : space.getObjects()) {
-			if (object instanceof Obstacle) {
-				Obstacle obstacle = (Obstacle) object;
-				if (!obstacle.equals(this)) {
-					if (distance(obstacle) <= obstacleDetectionRadius
-							+ obstacle.getObstacleRadius()
-							&& isInVisibleRange(obstacle)
-							&& isOnTheRoad(
-									obstacle,
-									((Obstacle) object).getObstacleRadius() + 0.25)) {
-						obstacles.add(obstacle);
+		if (avoidObstacle) {
+			for (Object object : space.getObjects()) {
+				if (object instanceof Obstacle) {
+					Obstacle obstacle = (Obstacle) object;
+					if (!obstacle.equals(this)) {
+						if (distance(obstacle) <= obstacleDetectionRadius
+								+ obstacle.getObstacleRadius()
+								&& isInVisibleRange(obstacle)
+								&& isOnTheRoad(
+										obstacle,
+										((Obstacle) object).getObstacleRadius() + 0.25)) {
+							obstacles.add(obstacle);
+						}
 					}
 				}
 			}
